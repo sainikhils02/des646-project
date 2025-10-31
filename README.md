@@ -95,27 +95,36 @@ The app uses `webdriver-manager` to automatically download the matching Chromedr
 - PowerShell: `$env:CHROMEDRIVER_PATH = "C:\path\to\chromedriver.exe"`
 - WSL/Bash: `export CHROMEDRIVER_PATH="/path/to/chromedriver"`
 
-## AI-Enhanced Analysis with Gemini 2.0 Flash (Optional)
+## AI-Enhanced Analysis with Google Gemini (Optional)
 
-The Design Assistant can integrate with Google's Gemini 2.0 Flash to provide enhanced natural language analysis, contextual explanations, and intelligent recommendations beyond rule-based reporting.
+The Design Assistant integrates with Google's Gemini AI models to provide advanced multimodal analysis, combining visual understanding (screenshot analysis) with code analysis (HTML/DOM inspection) for comprehensive design insights.
 
 ### Benefits of LLM Integration
 
-- **Contextual Analysis**: AI provides nuanced explanations of how violations affect real users
-- **Prioritized Recommendations**: Gemini suggests prioritized action plans based on severity and impact
+- **Multimodal Analysis**: Gemini analyzes both the visual screenshot AND the HTML structure simultaneously
+- **Visual Understanding**: AI identifies design issues by actually "seeing" the interface like a user would
+- **Contextual Explanations**: Provides nuanced explanations of how violations affect real users
+- **Prioritized Recommendations**: Suggests action plans based on severity, impact, and user experience
 - **Enhanced Insights**: Combines automated metrics with AI reasoning for comprehensive reports
-- **User Impact Assessment**: Explains accessibility issues from the user's perspective
-- **Cost-Effective**: Free tier includes 1,500 requests/day
+- **User Impact Assessment**: Explains accessibility and fairness issues from the user's perspective
+- **Cost-Effective**: Generous free tier with 1,500 requests/day for Gemini 2.5 Flash
 
 ### Setup Instructions
 
-1. **Get a Google AI API Key**:
+1. **Install Google Generative AI Package**:
+
+   The package is included in `requirements.txt`, but if you need to install it separately:
+   ```bash
+   pip install google-generativeai
+   ```
+
+2. **Get a Google AI API Key**:
    - Visit [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
    - Sign in with your Google account
-   - Click "Create API Key" 
+   - Click "Create API Key"
    - Copy your API key
 
-2. **Set the API key as an environment variable** (recommended):
+3. **Set the API key as an environment variable** (recommended):
 
    **PowerShell:**
    ```powershell
@@ -138,45 +147,96 @@ The Design Assistant can integrate with Google's Gemini 2.0 Flash to provide enh
    source ~/.bashrc
    ```
 
-3. **Enable in Streamlit Dashboard**:
+4. **Enable in Streamlit Dashboard**:
    - Launch the app: `streamlit run app.py`
-   - In the sidebar, check "Enable Gemini 2.0 Flash Analysis"
+   - In the sidebar, check "Enable Gemini Analysis"
    - Enter your API key (or leave empty if already set as env variable)
-   - Configure model, temperature, and max tokens as desired
-   - Run audits as normal - reports will now include AI-powered insights
+   - Select your preferred model:
+     - **models/gemini-2.5-pro** (recommended for best quality multimodal analysis)
+     - **models/gemini-2.5-flash** (faster, still excellent quality)
+     - **models/gemini-2.0-flash-exp** (experimental features)
+     - **models/gemini-flash-latest** (always uses latest stable flash model)
+   - Configure temperature (0.0-1.0) and max tokens as desired
+   - Run audits as normal - reports will now include AI-powered comprehensive insights
 
-### Cost Considerations
+### How It Works
 
-✅ **Free Tier**: Google AI offers a generous free tier:
-- **Gemini 2.0 Flash**: 1,500 requests/day (free)
-- **Gemini 1.5 Flash**: 1,500 requests/day (free)
-- **Gemini 1.5 Pro**: 50 requests/day (free)
+When Gemini analysis is enabled, the system:
 
-A typical audit uses:
-- 500-1,000 input tokens (audit data)
-- 1,000-3,000 output tokens (analysis)
-- Estimated cost: **FREE** for most users
+1. **Captures Visual + Code Data**: Takes a screenshot AND extracts the HTML DOM
+2. **Runs Automated Audits**: Computes accessibility scores, contrast metrics, and dark pattern detection
+3. **Sends to Gemini**: Provides both the screenshot image and HTML code to Gemini for analysis
+4. **Receives AI Insights**: Gemini analyzes the visual design AND code structure simultaneously
+5. **Combines Results**: Integrates automated metrics with AI-powered contextual analysis in the report
 
-**Paid pricing** (if exceeding free tier):
-- **Gemini 2.0 Flash**: $0.075 per 1M input tokens, $0.30 per 1M output tokens
-- **Gemini 1.5 Flash**: $0.075 per 1M input tokens, $0.30 per 1M output tokens
-- **Gemini 1.5 Pro**: $1.25 per 1M input tokens, $5 per 1M output tokens
+The multimodal approach allows Gemini to identify issues that pure automation might miss, such as:
+- Visual hierarchy problems visible in screenshots but not in HTML
+- Color contrast issues in context of the overall design
+- Dark patterns that rely on visual deception
+- User experience issues requiring visual understanding
 
-**Tips to stay within free tier**:
-- Use Gemini 2.0 Flash (default) for best performance
-- 1,500 audits/day is typically more than sufficient
-- No cost optimization needed for most users
+**Tips to optimize usage**:
+- Use **Gemini 2.5 Pro** (default) for best quality - 50 free requests/day is typically sufficient
+- Use **Gemini 2.5 Flash** for higher volume needs - 1,500 free requests/day
+- Free tier is usually more than enough for development and small-scale auditing
+- Multimodal analysis (image + text) provides significantly better insights than text-only
+
+### Verifying Your Setup
+
+To verify that Gemini is properly configured, run this test in your terminal:
+
+**PowerShell:**
+```powershell
+python -c "import google.generativeai as genai; import os; genai.configure(api_key=os.getenv('GOOGLE_API_KEY')); print('✓ Gemini SDK installed'); print('✓ API key configured' if os.getenv('GOOGLE_API_KEY') else '✗ API key not found'); models = genai.list_models(); print(f'✓ Found {len([m for m in models if \"generateContent\" in m.supported_generation_methods])} available models')"
+```
+
+**WSL/Bash:**
+```bash
+python -c "import google.generativeai as genai; import os; genai.configure(api_key=os.getenv('GOOGLE_API_KEY')); print('✓ Gemini SDK installed'); print('✓ API key configured' if os.getenv('GOOGLE_API_KEY') else '✗ API key not found'); models = genai.list_models(); print(f'✓ Found {len([m for m in models if \"generateContent\" in m.supported_generation_methods])} available models')"
+```
+
+Expected output:
+```
+✓ Gemini SDK installed
+✓ API key configured
+✓ Found 40+ available models
+```
+
+### Troubleshooting
+
+**"ModuleNotFoundError: No module named 'google.generativeai'"**
+- Solution: Install the package: `pip install google-generativeai`
+- Make sure you're in the correct virtual environment
+
+**"LLM analyzer available: False" in debug output**
+- Check that `GOOGLE_API_KEY` environment variable is set
+- Verify the API key is valid at [aistudio.google.com](https://aistudio.google.com)
+- Restart your terminal/PowerShell after setting environment variables
+
+**"404 model not found" errors**
+- Use the correct model name format with `models/` prefix: `models/gemini-2.5-pro`
+- Check available models with the verification command above
+- Ensure your API key has access to the requested model
+
+**"No Gemini analysis in report"**
+- Enable "Enable Gemini Analysis" checkbox in Streamlit sidebar
+- Check console output for DEBUG messages showing LLM initialization
+- Verify the audit completed successfully and generated artifacts
 
 ### Custom Prompts (Advanced)
 
-You can customize the prompts sent to Gemini by modifying `design_assistant/llm_integration.py`:
+You can customize the analysis prompts by modifying `design_assistant/llm_integration.py`:
 
 ```python
 llm_config = LLMConfig(
     api_key="your-api-key",
-    model="gemini-2.0-flash-exp",
-    custom_prompt_template="Your custom analysis prompt..."
+    model="models/gemini-2.5-pro",
+    temperature=0.3,
+    max_tokens=2000
 )
+
+# The prompts are in the analyze_comprehensive() method
+# Modify the content variable to customize what Gemini analyzes
 ```
 
 ## Configuration Notes
