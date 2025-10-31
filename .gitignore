@@ -1,0 +1,9 @@
+__pycache__/
+.des/
+outputs/
+*.pyc
+.ipynb_checkpoints/
+model/
+AI-Powered Design Assistant_ Technical Build Guide.pdf
+AI-Powered Design Assistant.txt
+
