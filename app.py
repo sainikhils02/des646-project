@@ -38,10 +38,10 @@ with st.sidebar:
     llm_config = None
     if HAS_LLM_SUPPORT:
         st.subheader("🤖 AI Enhancement (Optional)")
-        use_llm = st.checkbox("Enable Gemini 2.0 Flash Analysis", value=False)
+        use_llm = st.checkbox("Enable Gemini Multimodal Analysis", value=False)
         
         if use_llm:
-            st.info("💡 Gemini 2.0 Flash provides enhanced explanations and recommendations. Requires Google AI API key.")
+            st.info("💡 Gemini analyzes screenshots and HTML for comprehensive insights. Requires Google AI API key.")
             
             api_key = st.text_input(
                 "Google AI API Key",
@@ -52,9 +52,14 @@ with st.sidebar:
             
             model = st.selectbox(
                 "Model",
-                options=["gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.5-flash"],
+                options=[
+                    "models/gemini-2.5-pro",
+                    "models/gemini-2.5-flash", 
+                    "models/gemini-2.0-flash-exp",
+                    "models/gemini-flash-latest"
+                ],
                 index=0,
-                help="Gemini 2.0 Flash recommended for best analysis quality"
+                help="Gemini 2.5 Pro recommended for best multimodal analysis (vision + text)"
             )
             
             temperature = st.slider(
@@ -67,10 +72,10 @@ with st.sidebar:
             
             max_tokens = st.number_input(
                 "Max Tokens",
-                min_value=500,
+                min_value=1000,
                 max_value=8000,
-                value=4000,
-                help="Maximum response length"
+                value=8000,
+                help="Maximum response length (higher for comprehensive analysis)"
             )
             
             if api_key:

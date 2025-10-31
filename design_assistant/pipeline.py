@@ -74,9 +74,19 @@ class DesignAssistant:
         self.llm_config = llm_config
         
         # Initialize report writers with LLM config
-        self.pdf_writer = pdf_writer or PDFReportWriter(llm_config=llm_config)
+        # Important: Pass llm_config when creating default writers
+        if pdf_writer is None:
+            self.pdf_writer = PDFReportWriter(llm_config=llm_config)
+        else:
+            self.pdf_writer = pdf_writer
+            
         self.json_writer = json_writer or JSONReportWriter()
-        self.markdown_writer = markdown_writer or MarkdownReportWriter(llm_config=llm_config)
+        
+        if markdown_writer is None:
+            self.markdown_writer = MarkdownReportWriter(llm_config=llm_config)
+        else:
+            self.markdown_writer = markdown_writer
+            
         self.alpha = alpha
         self.beta = beta
 

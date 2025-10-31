@@ -91,7 +91,7 @@ class PDFReportWriter:
                 elements.append(Spacer(1, 6))
             # Bold text
             elif line.startswith('**') and line.endswith('**'):
-                clean_line = line.replace('**', '<b>').replace('**', '</b>')
+                clean_line = self._convert_markdown_to_html(line)
                 elements.append(Paragraph(clean_line, styles["Normal"]))
             # Bullet points
             elif line.startswith('- ') or line.startswith('* '):
@@ -117,31 +117,31 @@ class PDFReportWriter:
         try:
             doc.build(elements)
             return path
-        except Exception:
+        except Exception as e:
+            # Log the error with details
+            print(f"PDF generation error: {e}")
+            print(f"Error type: {type(e).__name__}")
             # Fallback to simple summary if PDF generation fails
             return self._write_simple_summary(result, path)
     
     def _convert_markdown_to_html(self, text: str) -> str:
         """Convert markdown formatting to proper HTML tags for ReportLab."""
-        # Escape ampersands
-        text = text.replace('&', '&amp;')
-        
-        # Replace ** with bold tags
+        # Replace ** with bold tags using simple split approach
         parts = text.split('**')
         result = []
         for i, part in enumerate(parts):
-            if i % 2 == 1:  # Odd indices are bold
+            if i % 2 == 1:  # Odd indices are bold text
+                # Escape XML special characters in bold content
+                part = part.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
                 result.append(f'<b>{part}</b>')
             else:
+                # Escape XML special characters in regular content
+                part = part.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
                 result.append(part)
         text = ''.join(result)
         
-        # Strip any remaining single asterisks (italic markers we won't use)
+        # Strip any remaining single asterisks (we don't handle italics)
         text = text.replace('*', '')
-        
-        # Escape any angle brackets that aren't our tags
-        text = text.replace('<', '&lt;').replace('>', '&gt;')
-        text = text.replace('&lt;b&gt;', '<b>').replace('&lt;/b&gt;', '</b>')
         
         return text
     

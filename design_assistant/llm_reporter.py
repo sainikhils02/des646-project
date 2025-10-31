@@ -63,6 +63,25 @@ class LLMReportGenerator:
         """
         sections = []
         
+        # Try comprehensive LLM analysis first if available
+        print(f"DEBUG: LLM analyzer available: {self.llm_analyzer is not None}")
+        if self.llm_analyzer:
+            print(f"DEBUG: LLM is_available: {self.llm_analyzer.is_available()}")
+        
+        if self.llm_analyzer and self.llm_analyzer.is_available():
+            print(f"DEBUG: Attempting comprehensive LLM analysis...")
+            llm_comprehensive = self._generate_llm_comprehensive_analysis(result)
+            print(f"DEBUG: Comprehensive analysis result: {llm_comprehensive is not None}")
+            if llm_comprehensive:
+                print(f"DEBUG: Using comprehensive LLM analysis for report")
+                sections.append(llm_comprehensive)
+                # Still add technical details at the end
+                sections.append(self._generate_technical_details(result))
+                return self._format_report(sections)
+            else:
+                print(f"DEBUG: Comprehensive analysis returned None, falling back to rule-based")
+        
+        # Fall back to rule-based generation with individual LLM enhancements
         # Executive Summary
         sections.append(self._generate_executive_summary(result))
         
@@ -83,6 +102,98 @@ class LLMReportGenerator:
         sections.append(self._generate_technical_details(result))
         
         return self._format_report(sections)
+    
+    def _generate_llm_comprehensive_analysis(self, result: "PipelineResult") -> Optional[LLMReportSection]:
+        """Generate comprehensive analysis using LLM with screenshot and HTML."""
+        try:
+            # Extract file paths from artifacts
+            screenshot_path = result.artifacts.get('screenshot_path')
+            html_path = result.artifacts.get('dom_path')
+            url = result.artifacts.get('url')
+            
+            print(f"DEBUG: Screenshot path: {screenshot_path}")
+            print(f"DEBUG: HTML path: {html_path}")
+            print(f"DEBUG: URL: {url}")
+            
+            # Read HTML content if available
+            html_content = None
+            if html_path:
+                from pathlib import Path
+                html_file = Path(html_path)
+                if html_file.exists():
+                    html_content = html_file.read_text(encoding='utf-8')
+                    print(f"DEBUG: HTML content loaded, length: {len(html_content)}")
+                else:
+                    print(f"DEBUG: HTML file does not exist: {html_path}")
+            
+            # Prepare metrics data
+            accessibility_data = None
+            if result.accessibility:
+                accessibility_data = {
+                    'score': result.accessibility.score,
+                    'violation_count': len(result.accessibility.violations),
+                    'critical_count': sum(1 for v in result.accessibility.violations if v.impact == 'critical')
+                }
+            
+            contrast_data = {
+                'avg_contrast': result.contrast.average_contrast,
+                'violation_count': len(result.contrast.violations)
+            }
+            
+            dark_pattern_data = {
+                'score': result.dark_patterns.score,
+                'pattern_count': len(result.dark_patterns.flags)
+            }
+            
+            # Get comprehensive LLM analysis
+            print(f"DEBUG: Calling LLM comprehensive analysis...")
+            llm_response = self.llm_analyzer.analyze_comprehensive(
+                screenshot_path=str(screenshot_path) if screenshot_path else None,
+                html_content=html_content,
+                url=url,
+                accessibility_data=accessibility_data,
+                contrast_data=contrast_data,
+                dark_pattern_data=dark_pattern_data
+            )
+            
+            print(f"DEBUG: LLM response received, length: {len(llm_response) if llm_response else 0}")
+            print(f"DEBUG: LLM response preview: {llm_response[:200] if llm_response else 'None'}")
+            
+            if llm_response and not llm_response.startswith("Error"):
+                # Add computed metrics summary at the top
+                metrics_summary = f"""# Comprehensive Design Audit Report
+
+## Computed Metrics Summary
+
+**Overall Design Fairness Score: {result.fairness.value:.2f}/1.0**
+
+| Metric | Score | Details |
+|--------|-------|---------|
+| Accessibility | {result.accessibility.score:.2%} | {len(result.accessibility.violations)} violations | 
+| Contrast | {result.contrast.average_contrast:.2f}:1 | {len(result.contrast.violations)} low-contrast regions |
+| Ethical UX | {result.dark_patterns.score:.2%} | {len(result.dark_patterns.flags)} potential dark patterns |
+
+---
+
+# AI-Powered Comprehensive Analysis
+
+{llm_response}
+
+"""
+                print(f"DEBUG: Returning comprehensive analysis section")
+                return LLMReportSection(
+                    title="Comprehensive Analysis",
+                    content=metrics_summary,
+                    severity="info"
+                )
+            else:
+                print(f"DEBUG: LLM response empty or error: {llm_response}")
+        except Exception as e:
+            import traceback
+            print(f"Warning: Comprehensive LLM analysis failed: {e}")
+            print(f"Traceback: {traceback.format_exc()}")
+        
+        return None
     
     def _generate_executive_summary(self, result: "PipelineResult") -> LLMReportSection:
         """Generate high-level executive summary."""
