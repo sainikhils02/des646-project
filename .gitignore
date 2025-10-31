@@ -6,4 +6,7 @@ outputs/
 model/
 AI-Powered Design Assistant_ Technical Build Guide.pdf
 AI-Powered Design Assistant.txt
-
+LLM_INTEGRATION_GUIDE.md
+MIGRATION_TO_GEMINI.md
+MULTIMODAL_ANALYSIS_UPDATE.md
+TROUBLESHOOTING_GEMINI.md
