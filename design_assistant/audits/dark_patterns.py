@@ -53,6 +53,15 @@ class DarkPatternAuditor:
         self.labels = labels or ["Urgency", "Confirm-shaming", "Misdirection"]
         self._classifier = self._build_classifier(model_name_or_path)
         self._keyword_map = self._default_keyword_map()
+        self._max_sentence_chars = 1500
+        self._classifier_params: Dict[str, object] = {}
+
+        if self._classifier is not None:
+            # Respect model limits while guarding against tokenizers that report extremely large bounds
+            max_length = getattr(self._classifier.tokenizer, "model_max_length", 512)
+            if not isinstance(max_length, int) or max_length <= 0 or max_length > 4096:
+                max_length = 512
+            self._classifier_params = {"truncation": True, "max_length": max_length}
 
     def audit(self, text: str) -> DarkPatternReport:
         if not text.strip():
@@ -64,7 +73,12 @@ class DarkPatternAuditor:
 
         if self._classifier is not None:
             for sentence in sentences:
-                result = self._classifier(sentence)
+                try:
+                    result = self._classifier(sentence, **self._classifier_params)
+                except Exception as err:  # pragma: no cover - defensive runtime guard
+                    raw_outputs.append({"sentence": sentence, "error": str(err)})
+                    continue
+
                 top = result[0]
                 raw_outputs.append({"sentence": sentence, **top})
                 label = top["label"].replace("LABEL_", "").strip()
@@ -83,7 +97,21 @@ class DarkPatternAuditor:
 
     def _split_text(self, text: str) -> List[str]:
         sentences = re.split(r"(?<=[.!?])\s+", text)
-        return [s.strip() for s in sentences if len(s.strip()) > 20]
+        chunks: List[str] = []
+        for sentence in sentences:
+            clean = sentence.strip()
+            if len(clean) <= 20:
+                continue
+            if len(clean) <= self._max_sentence_chars:
+                chunks.append(clean)
+                continue
+
+            # Break very long segments into smaller spans to respect model limits
+            for start in range(0, len(clean), self._max_sentence_chars):
+                part = clean[start : start + self._max_sentence_chars].strip()
+                if len(part) > 20:
+                    chunks.append(part)
+        return chunks
 
     def _build_classifier(self, model_name_or_path: str):
         if pipeline is None:

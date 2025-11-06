@@ -4,11 +4,6 @@ from __future__ import annotations
 import os
 import json
 import time
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -35,14 +30,6 @@ def load_lottie_file(filepath: str):
     except Exception:
         return None
 from design_assistant.pipeline import DesignAssistant, InputMode
-
-# Try to import utility modules
-try:
-    from utils.email_config import EmailConfig
-    HAS_EMAIL_CONFIG = True
-except ImportError:
-    HAS_EMAIL_CONFIG = False
-    EmailConfig = None
 
 try:
     from utils.theme_manager import ThemeManager
@@ -76,12 +63,14 @@ if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = True
 if 'current_page' not in st.session_state:
     st.session_state.current_page = "Home"
-if 'email_config' not in st.session_state:
-    st.session_state.email_config = None
 if 'selected_audits' not in st.session_state:
     st.session_state.selected_audits = set()
 if 'selected_audit_id' not in st.session_state:
     st.session_state.selected_audit_id = None
+if 'last_runtime' not in st.session_state:
+    st.session_state.last_runtime = None
+if 'last_llm_enabled' not in st.session_state:
+    st.session_state.last_llm_enabled = False
 
 class AuditHistoryManager:
     """Manage audit history and persistence"""
@@ -140,89 +129,6 @@ class AuditHistoryManager:
         ]
         self.save_history()
         st.session_state.selected_audits = set()
-
-class EmailService:
-    """Handle email functionality for audit reports"""
-    
-    @staticmethod
-    def send_audit_email(to_email: str, subject: str, body: str, attachments: List[Path] = None):
-        """Send audit report via email using Gmail"""
-        try:
-            # Use EmailConfig if available
-            if HAS_EMAIL_CONFIG:
-                email_config = EmailConfig.get_email_config()
-                
-                if not email_config:
-                    st.error("❌ Email not configured. Please configure email settings in the sidebar.")
-                    return False
-                
-                smtp_server = email_config["smtp_server"]
-                port = email_config["port"]
-                sender_email = email_config["sender_email"]
-                sender_password = email_config["sender_password"]
-            else:
-                # Fallback to environment variables
-                smtp_server = "smtp.gmail.com"
-                port = 587
-                sender_email = os.getenv("EMAIL_USER", "")
-                sender_password = os.getenv("EMAIL_PASSWORD", "")
-                
-                if not sender_email or not sender_password:
-                    st.warning("⚠️ Please configure email settings")
-                    return False
-            
-            # Create message
-            message = MIMEMultipart()
-            message["From"] = sender_email
-            message["To"] = to_email
-            message["Subject"] = subject
-            
-            # Attach HTML body
-            message.attach(MIMEText(body, "html"))
-            
-            # Add attachments
-            if attachments:
-                for attachment in attachments:
-                    if attachment.exists():
-                        part = MIMEBase('application', 'octet-stream')
-                        with open(attachment, 'rb') as file:
-                            part.set_payload(file.read())
-                        encoders.encode_base64(part)
-                        part.add_header(
-                            'Content-Disposition',
-                            f'attachment; filename={attachment.name}'
-                        )
-                        message.attach(part)
-            
-            # Send email via Gmail SMTP
-            try:
-                with smtplib.SMTP(smtp_server, port, timeout=10) as server:
-                    server.set_debuglevel(0)
-                    server.ehlo()
-                    server.starttls()
-                    server.ehlo()
-                    server.login(sender_email, sender_password)
-                    server.send_message(message)
-                
-                return True
-                
-            except smtplib.SMTPAuthenticationError:
-                st.error("❌ Authentication failed. Please check your credentials.")
-                st.info("""
-                **Gmail Authentication Help:**
-                1. Enable 2-Step Verification in your Google Account
-                2. Generate an App Password: https://myaccount.google.com/apppasswords
-                3. Use the 16-character App Password (not your regular password)
-                """)
-                return False
-                
-            except smtplib.SMTPException as e:
-                st.error(f"❌ SMTP error: {str(e)}")
-                return False
-            
-        except Exception as e:
-            st.error(f"❌ Failed to send email: {str(e)}")
-            return False
 
 def create_score_radar(scores: Dict[str, float]) -> go.Figure:
     """Create a radar chart for scores"""
@@ -352,467 +258,230 @@ def _try_save_plotly(fig, path):
         except Exception:
             return False
 
-# def generate_enhanced_pdf(result, input_value=None, analysis_images=None, history_records=None, out_path=Path("outputs")/ "audit_enhanced.pdf"):
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak
-    from reportlab.lib.styles import getSampleStyleSheet
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib import colors
+def render_audit_results(result, *, runtime: Optional[float] = None, llm_enabled: bool = False):
+    """Render audit outcome, visualizations, and download actions."""
+    runtime_value = runtime if runtime is not None else st.session_state.get('last_runtime')
+    if runtime_value is None:
+        runtime_value = 0.0
 
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    llm_analysis = getattr(result, "artifacts", {}).get("llm_analysis") if getattr(result, "artifacts", None) else None
 
-    # Build charts (reuse existing helpers)
-    scores = {
-        'Accessibility': result.accessibility.score if getattr(result, "accessibility", None) else 0.0,
-        'Contrast': result.contrast.average_contrast,
-        'Ethical UX': result.dark_patterns.score,
-        'Overall Fairness': result.fairness.value
-    }
-    radar = create_score_radar(scores)
-    vio = {
-        'Contrast': len(result.contrast.violations),
-        'Dark Patterns': len(result.dark_patterns.flags),
-        'Accessibility': len(result.accessibility.violations) if getattr(result, "accessibility", None) else 0
-    }
-    bar = create_violations_bar_chart(vio)
-
-    radar_path = Path("outputs")/"radar_chart.png"
-    bar_path = Path("outputs")/"violations_chart.png"
-    _try_save_plotly(radar, radar_path)
-    _try_save_plotly(bar, bar_path)
-
-    trend_path = None
-    if history_records and len(history_records) > 1:
-        hist_df = pd.DataFrame(history_records[-10:])
-        fig_trend = px.line(hist_df, x='timestamp', y=['fairness_score','accessibility_score','ethical_ux_score'], title='Score Trends Over Time')
-        fig_trend.update_layout(
-            paper_bgcolor='white',
-            plot_bgcolor='white',
-            font=dict(color='black', size=12),
-            xaxis=dict(
-                tickfont=dict(color='black', size=10),
-                title_font=dict(color='black', size=12),
-                color='black'
-            ),
-            yaxis=dict(
-                tickfont=dict(color='black', size=10),
-                title_font=dict(color='black', size=12),
-                color='black'
-            ),
-            title_font=dict(color='black', size=14)
-        )
-        fig_trend.update_traces(line=dict(width=3))
-        fig_trend.update_layout(
-            legend=dict(
-                font=dict(color='black', size=10),
-                bgcolor='rgba(255,255,255,0.8)',
-                bordercolor='black',
-                borderwidth=1
-            )
-        )
-        trend_path = Path("outputs")/"trend_chart.png"
-        _try_save_plotly(fig_trend, trend_path)
-
-    # Use provided analysis images or search for them
-    if analysis_images is None:
-        analysis_images = []
-    
-    # Convert to Path objects and ensure they exist
-    analysis_images = [Path(img) for img in analysis_images if Path(img).exists()]
-    
-    # Look for additional screenshots and analysis images
-    screenshot_paths = []
-    output_dir = Path("outputs")
-    
-    # Look for original screenshot/upload
-    if input_value and (input_value.endswith(('.png', '.jpg', '.jpeg', '.webp')) or Path(input_value).exists()):
-        screenshot_paths.append(Path(input_value))
-    
-    # Look for analysis images in outputs directory
-    for img_pattern in ['*screenshot*', '*analysis*', '*contrast*', '*accessibility*', '*original*', 'upload_*']:
-        analysis_images.extend(output_dir.glob(f"{img_pattern}.png"))
-        analysis_images.extend(output_dir.glob(f"{img_pattern}.jpg"))
-        analysis_images.extend(output_dir.glob(f"{img_pattern}.jpeg"))
-    
-    # Remove duplicates and ensure files exist
-    analysis_images = [img for img in set(analysis_images) if img.exists()]
-    screenshot_paths = [img for img in set(screenshot_paths) if img.exists()]
-
-    # Compose PDF
-    styles = getSampleStyleSheet()
-    doc = SimpleDocTemplate(str(out_path), pagesize=A4)
-    story = []
-
-    # Title Page
-    story.append(Paragraph("AI-Powered Design Assistant - Enhanced Audit Report", styles["Title"]))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph(f"<b>Generated on:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles["Normal"]))
-    
-    if input_value:
-        story.append(Paragraph(f"<b>Audit Target:</b> {input_value}", styles["Normal"]))
-    
-    story.append(Spacer(1, 12))
-    story.append(Paragraph(f"<b>Overall Fairness Score:</b> {result.fairness.value:.2f}/1.0", styles["Heading2"]))
-    story.append(Spacer(1, 8))
-
-    # Key Metrics Table
-    data = [
-        ["Metric", "Score"],
-        ["Accessibility", f"{(result.accessibility.score if getattr(result, 'accessibility', None) else 0.0):.2f}"],
-        ["Contrast", f"{result.contrast.average_contrast:.2f}"],
-        ["Ethical UX", f"{result.dark_patterns.score:.2f}"],
-        ["Overall Fairness", f"{result.fairness.value:.2f}"],
-    ]
-    table = Table(data, colWidths=[180, 120])
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#667eea")),
-        ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-        ("ALIGN", (0,0), (-1,-1), "CENTER"),
-        ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-        ("BACKGROUND", (0,1), (-1,-1), colors.whitesmoke),
-        ("FONTNAME", (0,0), (-1,-1), "Helvetica-Bold"),
-    ]))
-    story.append(table)
-    story.append(Spacer(1, 20))
-
-    # Add Original Screenshot if available
-    if screenshot_paths:
-        story.append(Paragraph("<b>Original Design</b>", styles["Heading2"]))
-        for screenshot in screenshot_paths[:1]:  # Only include first screenshot
-            try:
-                img = Image(str(screenshot))
-                img.drawHeight = 400
-                img.drawWidth = 500
-                story.append(img)
-                story.append(Spacer(1, 12))
-            except Exception as e:
-                story.append(Paragraph(f"<i>Could not load screenshot: {str(e)}</i>", styles["Italic"]))
-        story.append(PageBreak())
-
-    # Analysis Images Section
-    if analysis_images:
-        story.append(Paragraph("<b>Analysis Visualizations</b>", styles["Heading2"]))
-        for i, analysis_img in enumerate(analysis_images[:4]):  # Limit to 4 analysis images
-            try:
-                story.append(Paragraph(f"<b>Analysis {i+1}:</b> {analysis_img.stem}", styles["Normal"]))
-                img = Image(str(analysis_img))
-                img.drawHeight = 300
-                img.drawWidth = 400
-                story.append(img)
-                story.append(Spacer(1, 12))
-                
-                # Add page break after every 2 images to avoid overcrowding
-                if (i + 1) % 2 == 0:
-                    story.append(PageBreak())
-            except Exception as e:
-                story.append(Paragraph(f"<i>Could not load analysis image: {str(e)}</i>", styles["Italic"]))
-        story.append(PageBreak())
-
-    # Charts Section
-    story.append(Paragraph("<b>Score Analysis Charts</b>", styles["Heading2"]))
-    
-    if radar_path.exists():
-        story.append(Paragraph("<b>Score Radar Chart</b>", styles["Heading3"]))
-        img = Image(str(radar_path))
-        img.drawHeight = 320
-        img.drawWidth = 420
-        story.append(img)
-        story.append(Spacer(1, 12))
-
-    if bar_path.exists():
-        story.append(Paragraph("<b>Violations Analysis</b>", styles["Heading3"]))
-        img = Image(str(bar_path))
-        img.drawHeight = 320
-        img.drawWidth = 420
-        story.append(img)
-        story.append(Spacer(1, 12))
-
-    if trend_path and Path(trend_path).exists():
-        story.append(PageBreak())
-        story.append(Paragraph("<b>Historical Trends</b>", styles["Heading3"]))
-        img = Image(str(trend_path))
-        img.drawHeight = 320
-        img.drawWidth = 420
-        story.append(img)
-
-    # Detailed Findings
-    story.append(PageBreak())
-    story.append(Paragraph("<b>Detailed Findings</b>", styles["Heading2"]))
-    
-    # Accessibility Findings
-    if result.accessibility and hasattr(result.accessibility, 'violations') and result.accessibility.violations:
-        story.append(Paragraph(f"<b>Accessibility Issues Found:</b> {len(result.accessibility.violations)}", styles["Heading3"]))
-        for i, violation in enumerate(result.accessibility.violations[:5]):
-            story.append(Paragraph(f"{i+1}. {getattr(violation, 'description', 'Unknown issue')}", styles["Normal"]))
-    else:
-        story.append(Paragraph("<b>Accessibility:</b> No issues found", styles["Normal"]))
-    
-    story.append(Spacer(1, 12))
-    
-    # Contrast Findings
-    if hasattr(result.contrast, 'violations') and result.contrast.violations:
-        story.append(Paragraph(f"<b>Contrast Issues Found:</b> {len(result.contrast.violations)}", styles["Heading3"]))
-        for i, violation in enumerate(result.contrast.violations[:5]):
-            story.append(Paragraph(f"{i+1}. {getattr(violation, 'description', 'Unknown issue')}", styles["Normal"]))
-    else:
-        story.append(Paragraph("<b>Contrast:</b> No issues found", styles["Normal"]))
-    
-    story.append(Spacer(1, 12))
-    
-    # Ethical UX Findings
-    if hasattr(result.dark_patterns, 'flags') and result.dark_patterns.flags:
-        story.append(Paragraph(f"<b>Ethical UX Issues Found:</b> {len(result.dark_patterns.flags)}", styles["Heading3"]))
-        for i, flag in enumerate(result.dark_patterns.flags[:5]):
-            story.append(Paragraph(f"{i+1}. {getattr(flag, 'description', 'Unknown issue')}", styles["Normal"]))
-    else:
-        story.append(Paragraph("<b>Ethical UX:</b> No issues found", styles["Normal"]))
-
-    doc.build(story)
-    return out_path
-
-def generate_enhanced_pdf(result, input_value=None, analysis_images=None, history_records=None, out_path=Path("outputs")/ "audit_enhanced.pdf"):
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak
-    from reportlab.lib.styles import getSampleStyleSheet
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib import colors
-    import html
-
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Build charts (reuse existing helpers)
-    scores = {
-        'Accessibility': result.accessibility.score if getattr(result, "accessibility", None) else 0.0,
-        'Contrast': result.contrast.average_contrast,
-        'Ethical UX': result.dark_patterns.score,
-        'Overall Fairness': result.fairness.value
-    }
-    radar = create_score_radar(scores)
-    vio = {
-        'Contrast': len(result.contrast.violations),
-        'Dark Patterns': len(result.dark_patterns.flags),
-        'Accessibility': len(result.accessibility.violations) if getattr(result, "accessibility", None) else 0
-    }
-    bar = create_violations_bar_chart(vio)
-
-    radar_path = Path("outputs")/"radar_chart.png"
-    bar_path = Path("outputs")/"violations_chart.png"
-    _try_save_plotly(radar, radar_path)
-    _try_save_plotly(bar, bar_path)
-
-    trend_path = None
-    if history_records and len(history_records) > 1:
-        hist_df = pd.DataFrame(history_records[-10:])
-        fig_trend = px.line(hist_df, x='timestamp', y=['fairness_score','accessibility_score','ethical_ux_score'], title='Score Trends Over Time')
-        fig_trend.update_layout(
-            paper_bgcolor='white',
-            plot_bgcolor='white',
-            font=dict(color='black', size=12),
-            xaxis=dict(
-                tickfont=dict(color='black', size=10),
-                title_font=dict(color='black', size=12),
-                color='black'
-            ),
-            yaxis=dict(
-                tickfont=dict(color='black', size=10),
-                title_font=dict(color='black', size=12),
-                color='black'
-            ),
-            title_font=dict(color='black', size=14)
-        )
-        fig_trend.update_traces(line=dict(width=3))
-        fig_trend.update_layout(
-            legend=dict(
-                font=dict(color='black', size=10),
-                bgcolor='rgba(255,255,255,0.8)',
-                bordercolor='black',
-                borderwidth=1
-            )
-        )
-        trend_path = Path("outputs")/"trend_chart.png"
-        _try_save_plotly(fig_trend, trend_path)
-
-    # Use provided analysis images or search for them
-    if analysis_images is None:
-        analysis_images = []
-    
-    # Convert to Path objects and ensure they exist
-    analysis_images = [Path(img) for img in analysis_images if Path(img).exists()]
-    
-    # Look for additional screenshots and analysis images
-    screenshot_paths = []
-    output_dir = Path("outputs")
-    
-    # Look for original screenshot/upload
-    if input_value and (input_value.endswith(('.png', '.jpg', '.jpeg', '.webp')) or Path(input_value).exists()):
-        screenshot_paths.append(Path(input_value))
-    
-    # Look for analysis images in outputs directory
-    for img_pattern in ['*screenshot*', '*analysis*', '*contrast*', '*accessibility*', '*original*', 'upload_*']:
-        analysis_images.extend(output_dir.glob(f"{img_pattern}.png"))
-        analysis_images.extend(output_dir.glob(f"{img_pattern}.jpg"))
-        analysis_images.extend(output_dir.glob(f"{img_pattern}.jpeg"))
-    
-    # Remove duplicates and ensure files exist
-    analysis_images = [img for img in set(analysis_images) if img.exists()]
-    screenshot_paths = [img for img in set(screenshot_paths) if img.exists()]
-
-    # Compose PDF
-    styles = getSampleStyleSheet()
-    doc = SimpleDocTemplate(str(out_path), pagesize=A4)
-    story = []
-
-    # Title Page
-    story.append(Paragraph("AI-Powered Design Assistant - Enhanced Audit Report", styles["Title"]))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph(f"<b>Generated on:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles["Normal"]))
-    
-    if input_value:
-        story.append(Paragraph(f"<b>Audit Target:</b> {input_value}", styles["Normal"]))
-    
-    story.append(Spacer(1, 12))
-    story.append(Paragraph(f"<b>Overall Fairness Score:</b> {result.fairness.value:.2f}/1.0", styles["Heading2"]))
-    story.append(Spacer(1, 8))
-
-    # Key Metrics Table
-    data = [
-        ["Metric", "Score"],
-        ["Accessibility", f"{(result.accessibility.score if getattr(result, 'accessibility', None) else 0.0):.2f}"],
-        ["Contrast", f"{result.contrast.average_contrast:.2f}"],
-        ["Ethical UX", f"{result.dark_patterns.score:.2f}"],
-        ["Overall Fairness", f"{result.fairness.value:.2f}"],
-    ]
-    table = Table(data, colWidths=[180, 120])
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#667eea")),
-        ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-        ("ALIGN", (0,0), (-1,-1), "CENTER"),
-        ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-        ("BACKGROUND", (0,1), (-1,-1), colors.whitesmoke),
-        ("FONTNAME", (0,0), (-1,-1), "Helvetica-Bold"),
-    ]))
-    story.append(table)
-    story.append(Spacer(1, 20))
-
-    # Add Original Screenshot if available
-    if screenshot_paths:
-        story.append(Paragraph("<b>Original Design</b>", styles["Heading2"]))
-        for screenshot in screenshot_paths[:1]:  # Only include first screenshot
-            try:
-                img = Image(str(screenshot))
-                img.drawHeight = 400
-                img.drawWidth = 500
-                story.append(img)
-                story.append(Spacer(1, 12))
-            except Exception as e:
-                story.append(Paragraph(f"<i>Could not load screenshot: {str(e)}</i>", styles["Italic"]))
-        story.append(PageBreak())
-
-    # Analysis Images Section
-    if analysis_images:
-        story.append(Paragraph("<b>Analysis Visualizations</b>", styles["Heading2"]))
-        for i, analysis_img in enumerate(analysis_images[:4]):  # Limit to 4 analysis images
-            try:
-                story.append(Paragraph(f"<b>Analysis {i+1}:</b> {analysis_img.stem}", styles["Normal"]))
-                img = Image(str(analysis_img))
-                img.drawHeight = 300
-                img.drawWidth = 400
-                story.append(img)
-                story.append(Spacer(1, 12))
-                
-                # Add page break after every 2 images to avoid overcrowding
-                if (i + 1) % 2 == 0:
-                    story.append(PageBreak())
-            except Exception as e:
-                story.append(Paragraph(f"<i>Could not load analysis image: {str(e)}</i>", styles["Italic"]))
-        story.append(PageBreak())
-
-    # Charts Section
-    story.append(Paragraph("<b>Score Analysis Charts</b>", styles["Heading2"]))
-    
-    if radar_path.exists():
-        story.append(Paragraph("<b>Score Radar Chart</b>", styles["Heading3"]))
-        img = Image(str(radar_path))
-        img.drawHeight = 320
-        img.drawWidth = 420
-        story.append(img)
-        story.append(Spacer(1, 12))
-
-    if bar_path.exists():
-        story.append(Paragraph("<b>Violations Analysis</b>", styles["Heading3"]))
-        img = Image(str(bar_path))
-        img.drawHeight = 320
-        img.drawWidth = 420
-        story.append(img)
-        story.append(Spacer(1, 12))
-
-    if trend_path and Path(trend_path).exists():
-        story.append(PageBreak())
-        story.append(Paragraph("<b>Historical Trends</b>", styles["Heading3"]))
-        img = Image(str(trend_path))
-        img.drawHeight = 320
-        img.drawWidth = 420
-        story.append(img)
-
-    # Detailed Findings
-    story.append(PageBreak())
-    story.append(Paragraph("<b>Detailed Findings</b>", styles["Heading2"]))
-    
-    # Helper function to clean HTML tags from text
-    def clean_html_tags(text):
-        """Remove or escape HTML tags from text for PDF generation"""
-        if not text:
+    def _stringify_cell(value):
+        if value is None:
             return ""
-        # Replace common HTML tags with plain text equivalents
-        text = str(text)
-        text = text.replace('<img>', 'image elements')
-        text = text.replace('</img>', '')
-        text = text.replace('<para>', '')
-        text = text.replace('</para>', '')
-        text = text.replace('<strong>', '')
-        text = text.replace('</strong>', '')
-        text = text.replace('<em>', '')
-        text = text.replace('</em>', '')
-        # Escape any remaining HTML characters
-        text = html.escape(text)
-        return text
-    
-    # Accessibility Findings
-    if result.accessibility and hasattr(result.accessibility, 'violations') and result.accessibility.violations:
-        story.append(Paragraph(f"<b>Accessibility Issues Found:</b> {len(result.accessibility.violations)}", styles["Heading3"]))
-        for i, violation in enumerate(result.accessibility.violations[:5]):
-            description = clean_html_tags(getattr(violation, 'description', 'Unknown issue'))
-            story.append(Paragraph(f"{i+1}. {description}", styles["Normal"]))
-    else:
-        story.append(Paragraph("<b>Accessibility:</b> No issues found", styles["Normal"]))
-    
-    story.append(Spacer(1, 12))
-    
-    # Contrast Findings
-    if hasattr(result.contrast, 'violations') and result.contrast.violations:
-        story.append(Paragraph(f"<b>Contrast Issues Found:</b> {len(result.contrast.violations)}", styles["Heading3"]))
-        for i, violation in enumerate(result.contrast.violations[:5]):
-            description = clean_html_tags(getattr(violation, 'description', 'Unknown issue'))
-            story.append(Paragraph(f"{i+1}. {description}", styles["Normal"]))
-    else:
-        story.append(Paragraph("<b>Contrast:</b> No issues found", styles["Normal"]))
-    
-    story.append(Spacer(1, 12))
-    
-    # Ethical UX Findings
-    if hasattr(result.dark_patterns, 'flags') and result.dark_patterns.flags:
-        story.append(Paragraph(f"<b>Ethical UX Issues Found:</b> {len(result.dark_patterns.flags)}", styles["Heading3"]))
-        for i, flag in enumerate(result.dark_patterns.flags[:5]):
-            description = clean_html_tags(getattr(flag, 'description', 'Unknown issue'))
-            story.append(Paragraph(f"{i+1}. {description}", styles["Normal"]))
-    else:
-        story.append(Paragraph("<b>Ethical UX:</b> No issues found", styles["Normal"]))
+        if isinstance(value, (dict, list, tuple, set)):
+            try:
+                return json.dumps(value, indent=2, ensure_ascii=False)
+            except Exception:
+                return str(value)
+        return str(value)
 
-    doc.build(story)
-    return out_path
+    def _render_records(records):
+        if not records:
+            return False
+
+        df = pd.DataFrame(records)
+        if df.empty:
+            return False
+
+        df = df.applymap(_stringify_cell)
+        table_html = df.to_html(index=False, escape=False)
+        styled_html = f"""
+        <style>
+            .audit-table table {{
+                width: 100%;
+                border-collapse: collapse;
+            }}
+            .audit-table th,
+            .audit-table td {{
+                text-align: left;
+                border: 1px solid rgba(102, 126, 234, 0.2);
+                padding: 0.45rem 0.6rem;
+                white-space: normal;
+                word-break: break-word;
+            }}
+            .audit-table thead tr {{
+                background: rgba(102, 126, 234, 0.08);
+            }}
+        </style>
+        <div class="audit-table">{table_html}</div>
+        """
+        st.markdown(styled_html, unsafe_allow_html=True)
+        return True
+
+    st.markdown("---")
+    st.markdown("## 📊 Audit Results")
+
+    fairness_value = result.fairness.value
+    gradient_start = "#00b09b" if fairness_value > 0.7 else "#f46b45" if fairness_value > 0.4 else "#ff416c"
+    gradient_end = "#96c93d" if fairness_value > 0.7 else "#eea849" if fairness_value > 0.4 else "#ff4b2b"
+
+    col1, col2, col3 = st.columns([2, 1, 1])
+
+    with col1:
+        st.markdown(
+            f"""
+            <div class='success-box' style='background: linear-gradient(135deg, 
+                {gradient_start} 0%, {gradient_end} 100%);'>
+                <h2 style='margin: 0; font-size: 2.5rem;'>Design Fairness Score</h2>
+                <h1 style='margin: 0; font-size: 4rem;'>{fairness_value:.2f}/1.0</h1>
+                <p>Audit completed in {runtime_value:.1f}s</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if llm_analysis:
+            st.caption("Gemini validation enabled — dark pattern and contrast findings are LLM-filtered for precision.")
+
+    with col2:
+        accessibility_score = result.accessibility.score if result.accessibility else 0.0
+        st.metric("Accessibility", f"{accessibility_score:.2f}")
+        st.metric("Average Contrast", f"{result.contrast.average_contrast:.2f}")
+
+    with col3:
+        st.metric("Ethical UX", f"{result.dark_patterns.score:.2f}")
+        total_violations = (
+            len(getattr(result.contrast, 'violations', []))
+            + len(getattr(result.dark_patterns, 'flags', []))
+            + (len(getattr(result.accessibility, 'violations', [])) if result.accessibility else 0)
+        )
+        st.metric("Total Violations", total_violations)
+
+    if HAS_ST_LOTTIE and success_anim:
+        col_anim_success, _ = st.columns([1, 11])
+        with col_anim_success:
+            st_lottie(success_anim, height=140, key="success")
+
+    st.markdown("### 📈 Score Overview")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        scores = {
+            'Accessibility': result.accessibility.score if result.accessibility else 0.0,
+            'Contrast': result.contrast.average_contrast,
+            'Ethical UX': result.dark_patterns.score,
+            'Overall Fairness': fairness_value,
+        }
+        fig_radar = create_score_radar(scores)
+        st.plotly_chart(fig_radar, use_container_width=True)
+
+    with col2:
+        violations_data = {
+            'Contrast': len(getattr(result.contrast, 'violations', [])),
+            'Dark Patterns': len(getattr(result.dark_patterns, 'flags', [])),
+            'Accessibility': len(getattr(result.accessibility, 'violations', [])) if result.accessibility else 0,
+        }
+        fig_bar = create_violations_bar_chart(violations_data)
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        with st.expander("🎯 Accessibility Details", expanded=True):
+            if result.accessibility and getattr(result.accessibility, 'violations', None):
+                records = [violation.__dict__ for violation in result.accessibility.violations]
+                _render_records(records)
+            else:
+                st.success("✅ No accessibility violations found!")
+
+        with st.expander("🎨 Contrast Analysis", expanded=True):
+            if getattr(result.contrast, 'violations', None):
+                records = [violation.to_dict() for violation in result.contrast.violations]
+                _render_records(records)
+                if llm_analysis and llm_analysis.get("contrast"):
+                    st.info("Gemini validated these contrast issues to reduce false positives.")
+            else:
+                st.success("✅ No contrast violations found!")
+
+    with col2:
+        with st.expander("⚖️ Ethical UX Analysis", expanded=True):
+            if getattr(result.dark_patterns, 'flags', None):
+                records = [flag.to_dict() for flag in result.dark_patterns.flags]
+                _render_records(records)
+                if llm_analysis and llm_analysis.get("dark_patterns"):
+                    st.success("Findings vetted by Gemini multimodal reasoning; confidence and severity reflect the model's judgement.")
+            else:
+                st.success("✅ No dark patterns detected!")
+
+        with st.expander("🧠 Persuasive Design Analysis", expanded=True):
+            persuasive_score = max(0.7, result.dark_patterns.score + 0.1)
+            st.metric("Persuasive Design Score", f"{persuasive_score:.2f}")
+            st.info(
+                """
+                **Persuasive Design Elements Checked:**
+                - Social proof indicators
+                - Scarcity messaging
+                - Urgency triggers
+                - Authority endorsements
+                - Reciprocity patterns
+                - Commitment devices
+                """
+            )
+
+        if llm_enabled and HAS_LLM_SUPPORT:
+            with st.expander("🤖 AI Insights", expanded=True):
+                st.info(
+                    """
+                    **Gemini AI Analysis Summary:**
+                    The AI has analyzed your design comprehensively and provided 
+                    additional insights about usability patterns, potential improvements, 
+                    and industry best practices.
+                    """
+                )
+
+    st.markdown("### 📄 Report Viewer")
+    markdown_path = Path("outputs") / "audit_report.md"
+    if markdown_path.exists():
+        with st.expander("📖 View Markdown Report", expanded=False):
+            report_content = markdown_path.read_text(encoding="utf-8")
+            st.markdown(report_content)
+
+    st.markdown("---")
+    st.markdown("## 📥 Download Reports")
+
+    col1, col2, col3 = st.columns(3)
+    output_dir = Path("outputs")
+
+    with col1:
+        markdown_path = output_dir / "audit_report.md"
+        if markdown_path.exists():
+            st.download_button(
+                "📄 Markdown Report",
+                data=markdown_path.read_bytes(),
+                file_name="audit_report.md",
+                mime="text/markdown",
+                use_container_width=True,
+            )
+
+    with col2:
+        json_path = output_dir / "audit.json"
+        if json_path.exists():
+            st.download_button(
+                "📋 JSON Data",
+                data=json_path.read_bytes(),
+                file_name="audit.json",
+                mime="application/json",
+                use_container_width=True,
+            )
+
+    with col3:
+        pdf_path = output_dir / "audit.pdf"
+        if pdf_path.exists():
+            st.download_button(
+                "📕 PDF Summary",
+                data=pdf_path.read_bytes(),
+                file_name="audit.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+            )
+
+    if llm_analysis:
+        with st.expander("🤖 Gemini Validation Details", expanded=False):
+            st.json(llm_analysis)
+
 
 # Initialize managers
 history_manager = AuditHistoryManager()
-email_service = EmailService()
-
 # Custom CSS for animations and styling
 st.markdown("""
 <style>
@@ -975,13 +644,6 @@ st.markdown("""
         box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
     }
     
-    .email-popover {
-        background: white;
-        padding: 1rem;
-        border-radius: 10px;
-        border: 1px solid #e6e6e6;
-    }
-    
     .delete-actions {
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
         color: white;
@@ -1017,11 +679,6 @@ with st.sidebar:
             st.rerun()
     
     st.markdown("</div>", unsafe_allow_html=True)
-    
-    # Email configuration in sidebar
-    if HAS_EMAIL_CONFIG:
-        st.markdown("---")
-        EmailConfig.setup_email_ui()
     
     # Quick stats
     if st.session_state.audit_history:
@@ -1183,7 +840,7 @@ elif st.session_state.current_page == "Audit":
                     if api_key:
                         llm_config = LLMConfig(
                             api_key=api_key,
-                            model="models/gemini-2.0-flash-exp",
+                            model="models/gemini-2.5-pro",
                             temperature=0.7,
                             max_tokens=8000
                         )
@@ -1256,7 +913,9 @@ elif st.session_state.current_page == "Audit":
             
             # Calculate runtime
             runtime = time.time() - start_time
-            
+            st.session_state.last_runtime = runtime
+            st.session_state.last_llm_enabled = bool(llm_config)
+
             # Add to history
             history_manager.add_audit({
                 'input_type': mode,
@@ -1274,231 +933,23 @@ elif st.session_state.current_page == "Audit":
             time.sleep(1)
             progress_bar.empty()
             status_text.empty()
-            
-            # Display results
-            st.markdown("---")
-            st.markdown("## 📊 Audit Results")
-            
-            # Main score card
-            col1, col2, col3 = st.columns([2, 1, 1])
-            
-            with col1:
-                score_color = "green" if result.fairness.value > 0.7 else "orange" if result.fairness.value > 0.4 else "red"
-                st.markdown(f"""
-                <div class='success-box' style='background: linear-gradient(135deg, 
-                    {"#00b09b" if result.fairness.value > 0.7 else "#f46b45" if result.fairness.value > 0.4 else "#ff416c"} 
-                    0%, {"#96c93d" if result.fairness.value > 0.7 else "#eea849" if result.fairness.value > 0.4 else "#ff4b2b"} 100%);'>
-                    <h2 style='margin: 0; font-size: 2.5rem;'>Design Fairness Score</h2>
-                    <h1 style='margin: 0; font-size: 4rem;'>{result.fairness.value:.2f}/1.0</h1>
-                    <p>Audit completed in {runtime:.1f}s</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                accessibility_score = result.accessibility.score if result.accessibility else 0.0
-                st.metric("Accessibility", f"{accessibility_score:.2f}")
-                st.metric("Average Contrast", f"{result.contrast.average_contrast:.2f}")
-            
-            with col3:
-                st.metric("Ethical UX", f"{result.dark_patterns.score:.2f}")
-                total_violations = (
-                    len(getattr(result.contrast, 'violations', [])) + 
-                    len(getattr(result.dark_patterns, 'flags', [])) + 
-                    (len(getattr(result.accessibility, 'violations', [])) if result.accessibility else 0)
-                )
-                st.metric("Total Violations", total_violations)
-            
-            # Show success animation near results (if available)
-            if HAS_ST_LOTTIE and success_anim:
-                col_anim_success, _ = st.columns([1, 11])
-                with col_anim_success:
-                    st_lottie(success_anim, height=140, key="success")
 
-            # Visualizations
-            st.markdown("### 📈 Score Overview")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Radar chart
-                scores = {
-                    'Accessibility': result.accessibility.score if result.accessibility else 0.0,
-                    'Contrast': result.contrast.average_contrast,
-                    'Ethical UX': result.dark_patterns.score,
-                    'Overall Fairness': result.fairness.value
-                }
-                fig_radar = create_score_radar(scores)
-                st.plotly_chart(fig_radar, use_container_width=True)
-            
-            with col2:
-                # Violations bar chart
-                violations_data = {
-                    'Contrast': len(getattr(result.contrast, 'violations', [])),
-                    'Dark Patterns': len(getattr(result.dark_patterns, 'flags', [])),
-                    'Accessibility': len(getattr(result.accessibility, 'violations', [])) if result.accessibility else 0
-                }
-                fig_bar = create_violations_bar_chart(violations_data)
-                st.plotly_chart(fig_bar, use_container_width=True)
-            
-            # Detailed sections with expanders
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                with st.expander("🎯 Accessibility Details", expanded=True):
-                    if result.accessibility and hasattr(result.accessibility, 'violations') and result.accessibility.violations:
-                        st.dataframe([violation.__dict__ for violation in result.accessibility.violations],
-                                   use_container_width=True)
-                    else:
-                        st.success("✅ No accessibility violations found!")
-                
-                with st.expander("🎨 Contrast Analysis", expanded=True):
-                    if hasattr(result.contrast, 'violations') and result.contrast.violations:
-                        st.dataframe([violation.to_dict() for violation in result.contrast.violations],
-                                   use_container_width=True)
-                    else:
-                        st.success("✅ No contrast violations found!")
-            
-            with col2:
-                with st.expander("⚖️ Ethical UX Analysis", expanded=True):
-                    if hasattr(result.dark_patterns, 'flags') and result.dark_patterns.flags:
-                        st.dataframe([flag.to_dict() for flag in result.dark_patterns.flags],
-                                   use_container_width=True)
-                    else:
-                        st.success("✅ No dark patterns detected!")
-                
-                # Add Persuasive Design Analysis
-                with st.expander("🧠 Persuasive Design Analysis", expanded=True):
-                    # This would integrate with your persuasive design detection logic
-                    persuasive_score = max(0.7, result.dark_patterns.score + 0.1)  # Example calculation
-                    st.metric("Persuasive Design Score", f"{persuasive_score:.2f}")
-                    st.info("""
-                    **Persuasive Design Elements Checked:**
-                    - Social proof indicators
-                    - Scarcity messaging
-                    - Urgency triggers
-                    - Authority endorsements
-                    - Reciprocity patterns
-                    - Commitment devices
-                    """)
-                
-                # LLM Summary if available
-                if llm_config and HAS_LLM_SUPPORT:
-                    with st.expander("🤖 AI Insights", expanded=True):
-                        st.info("""
-                        **Gemini AI Analysis Summary:**
-                        The AI has analyzed your design comprehensively and provided 
-                        additional insights about usability patterns, potential improvements, 
-                        and industry best practices.
-                        """)
-            
-            # View Markdown Report
-            st.markdown("### 📄 Report Viewer")
-            markdown_path = Path("outputs") / "audit_report.md"
-            if markdown_path.exists():
-                with st.expander("📖 View Markdown Report", expanded=False):
-                    report_content = markdown_path.read_text(encoding="utf-8")
-                    st.markdown(report_content)
-            
-            # Download section
-            st.markdown("---")
-            st.markdown("## 📥 Download Reports")
-            
-            col1, col2, col3, col4 = st.columns(4)
-            
-            output_dir = Path("outputs")
-            with col1:
-                markdown_path = output_dir / "audit_report.md"
-                if markdown_path.exists():
-                    st.download_button(
-                        "📄 Markdown Report",
-                        data=markdown_path.read_bytes(),
-                        file_name="audit_report.md",
-                        mime="text/markdown",
-                        use_container_width=True
-                    )
-            
-            with col2:
-                json_path = output_dir / "audit.json"
-                if json_path.exists():
-                    st.download_button(
-                        "📋 JSON Data",
-                        data=json_path.read_bytes(),
-                        file_name="audit.json",
-                        mime="application/json",
-                        use_container_width=True
-                    )
-            
-            with col3:
-                pdf_path = output_dir / "audit.pdf"
-                if pdf_path.exists():
-                    st.download_button(
-                        "📕 PDF Summary",
-                        data=pdf_path.read_bytes(),
-                        file_name="audit.pdf",
-                        mime="application/pdf",
-                        use_container_width=True
-                    )
-            
-            with col4:
-                # Generate and download enhanced PDF with images
-                try:
-                    # Get analysis images from artifacts if available
-                    analysis_images = []
-                    if hasattr(result, 'artifacts') and result.artifacts:
-                        analysis_images = result.artifacts.get('analysis_images', [])
-                    
-                    # Add error handling for PDF generation
-                    try:
-                        enhanced_pdf = generate_enhanced_pdf(
-                            result, 
-                            input_value=input_value,
-                            analysis_images=analysis_images,
-                            history_records=st.session_state.audit_history[:10]
-                        )
-                        
-                        if enhanced_pdf.exists():
-                            st.download_button(
-                                "📘 Enhanced PDF (with Images)",
-                                data=enhanced_pdf.read_bytes(),
-                                file_name="audit_enhanced.pdf",
-                                mime="application/pdf",
-                                use_container_width=True,
-                                help="Includes screenshots, analysis images, and detailed charts"
-                            )
-                        else:
-                            st.button(
-                                "📘 Enhanced PDF",
-                                disabled=True,
-                                use_container_width=True,
-                                help="Enhanced PDF generation failed"
-                            )
-                    except Exception as pdf_error:
-                        st.error(f"❌ PDF generation error: {str(pdf_error)}")
-                        # Fallback: offer the basic PDF instead
-                        pdf_path = output_dir / "audit.pdf"
-                        if pdf_path.exists():
-                            st.download_button(
-                                "📕 Basic PDF Report",
-                                data=pdf_path.read_bytes(),
-                                file_name="audit.pdf",
-                                mime="application/pdf",
-                                use_container_width=True,
-                                help="Basic PDF report (enhanced version failed)"
-                            )
-                        
-                except Exception as e:
-                    st.error(f"❌ Failed to generate enhanced PDF: {e}")
-                    st.button(
-                        "📘 Enhanced PDF",
-                        disabled=True,
-                        use_container_width=True,
-                        help="Enhanced PDF generation failed"
-                    )
+            render_audit_results(
+                result,
+                runtime=runtime,
+                llm_enabled=bool(llm_config)
+            )
 
         except Exception as exc:
             st.error(f"❌ Audit failed: {str(exc)}")
             st.exception(exc)
     
+    elif st.session_state.current_result:
+        render_audit_results(
+            st.session_state.current_result,
+            runtime=st.session_state.get('last_runtime'),
+            llm_enabled=st.session_state.get('last_llm_enabled', False)
+        )
     else:
         if not run_disabled:
             st.info("👆 Configure your input and click 'Run Comprehensive Audit' to start analysis")
@@ -1723,90 +1174,6 @@ elif st.session_state.current_page == "History":
                             help="Report file not found"
                         )
                 
-                with col6:
-                    # Email button in history
-                    try:
-                        email_configured = HAS_EMAIL_CONFIG and EmailConfig.get_email_config() is not None
-                    except:
-                        email_configured = False
-                        
-                    if email_configured:
-                        with st.popover("📧 Email", use_container_width=True):
-                            st.markdown('<div class="email-popover">', unsafe_allow_html=True)
-                            
-                            recipient_email = st.text_input(
-                                "Recipient Email", 
-                                placeholder="recipient@example.com", 
-                                key=f"email_{audit['id']}"
-                            )
-                            
-                            email_subject = st.text_input(
-                                "Subject", 
-                                value=f"Design Audit Report - {input_value[:30]}", 
-                                key=f"subject_{audit['id']}"
-                            )
-                            
-                            if st.button("📤 Send Email", key=f"send_{audit['id']}", use_container_width=True):
-                                if recipient_email:
-                                    if "@" not in recipient_email:
-                                        st.error("❌ Please enter a valid email address")
-                                    else:
-                                        with st.spinner("Sending email..."):
-                                            output_dir = Path(audit.get('output_dir', 'outputs'))
-                                            markdown_path = output_dir / "audit_report.md"
-                                            
-                                            email_body = f"""
-                                            <html>
-                                            <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
-                                                <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                                                    <h1 style="color: #667eea; border-bottom: 3px solid #667eea; padding-bottom: 10px;">Design Audit Report</h1>
-                                                    <p style="font-size: 16px; color: #333;">Your design audit has been completed successfully.</p>
-                                                    
-                                                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                                                        <p style="margin: 5px 0;"><strong>Audit Target:</strong> {input_value}</p>
-                                                        <p style="margin: 5px 0;"><strong>Audit Date:</strong> {formatted_time}</p>
-                                                        <p style="margin: 5px 0;"><strong>Overall Score:</strong> <span style="font-size: 24px; color: #667eea; font-weight: bold;">{score:.2f}/1.0</span></p>
-                                                    </div>
-                                                    
-                                                    <h3 style="color: #333;">Score Breakdown:</h3>
-                                                    <ul style="list-style: none; padding: 0;">
-                                                        <li style="padding: 8px; background-color: #f8f9fa; margin: 5px 0; border-radius: 5px;">🎯 Accessibility: {audit.get('accessibility_score', 0):.2f}</li>
-                                                        <li style="padding: 8px; background-color: #f8f9fa; margin: 5px 0; border-radius: 5px;">🎨 Contrast: {audit.get('contrast_score', 0):.2f}</li>
-                                                        <li style="padding: 8px; background-color: #f8f9fa; margin: 5px 0; border-radius: 5px;">⚖️ Ethical UX: {audit.get('ethical_ux_score', 0):.2f}</li>
-                                                    </ul>
-                                                    
-                                                    <p style="margin-top: 30px; color: #666; font-size: 14px;">Please find the detailed audit report attached to this email.</p>
-                                                    
-                                                    <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
-                                                    <p style="text-align: center; color: #999; font-size: 12px;">
-                                                        Generated by AI-Powered Design Assistant<br>
-                                                        Making the web better, one audit at a time 🎨
-                                                    </p>
-                                                </div>
-                                            </body>
-                                            </html>
-                                            """
-                                            
-                                            attachments = [markdown_path] if markdown_path.exists() else []
-                                            
-                                            if email_service.send_audit_email(recipient_email, email_subject, email_body, attachments):
-                                                st.success("✅ Email sent successfully!")
-                                                st.balloons()
-                                            else:
-                                                st.error("❌ Failed to send email. Check your email configuration.")
-                                else:
-                                    st.warning("⚠️ Please enter a recipient email address")
-                            
-                            st.markdown('</div>', unsafe_allow_html=True)
-                    else:
-                        st.button(
-                            "📧 Email", 
-                            key=f"email_btn_{audit['id']}", 
-                            disabled=True, 
-                            use_container_width=True,
-                            help="⚠️ Configure email settings in sidebar to enable email functionality"
-                        )
-                
                 st.markdown('</div>', unsafe_allow_html=True)
                 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -1866,7 +1233,6 @@ elif st.session_state.current_page == "About":
     - **🤖 AI Enhancement**: Google Gemini multimodal analysis
     - **📊 Visual Reports**: Interactive charts and comprehensive dashboards
     - **📚 Audit History**: Track improvements and trends over time
-    - **📧 Email Reports**: Share results easily with stakeholders
     
     #### 🛠️ Technology Stack
     
@@ -1875,15 +1241,6 @@ elif st.session_state.current_page == "About":
     - **Accessibility**: axe-core engine
     - **Contrast**: WCAG 2.1 AA/AAA algorithms
     - **Visualization**: Plotly interactive charts
-    - **Email**: SMTP with Gmail integration
-    
-    #### 📧 Email Configuration
-    
-    To use the email functionality:
-    1. Use a Gmail account
-    2. Enable 2-Step Verification in your Google Account
-    3. Generate an App Password from: [Google App Passwords](https://myaccount.google.com/apppasswords)
-    4. Configure in the sidebar under "Email Configuration"
     
     #### 🌟 Best Practices
     

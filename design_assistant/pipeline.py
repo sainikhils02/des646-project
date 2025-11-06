@@ -7,12 +7,17 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from .audits.accessibility import AccessibilityAuditor, AccessibilityReport
-from .audits.contrast import ContrastAuditor, ContrastReport
-from .audits.dark_patterns import DarkPatternAuditor, DarkPatternReport
+from .audits.contrast import ContrastAuditor, ContrastReport, ContrastViolation
+from .audits.dark_patterns import DarkPatternAuditor, DarkPatternReport, DarkPatternFlag
 from .collectors.selenium_collector import SeleniumCollector, SeleniumArtifacts
 from .collectors.screenshot_loader import ScreenshotLoader
 from .fusion import DesignFairnessScore
 from .reporting import PDFReportWriter, JSONReportWriter, MarkdownReportWriter
+
+try:
+    from .llm_integration import LLMAnalyzer
+except ImportError:  # pragma: no cover - optional dependency
+    LLMAnalyzer = None
 
 if TYPE_CHECKING:
     try:
@@ -72,6 +77,13 @@ class DesignAssistant:
         self.contrast_auditor = contrast_auditor or ContrastAuditor()
         self.dark_pattern_auditor = dark_pattern_auditor or DarkPatternAuditor()
         self.llm_config = llm_config
+        self.llm_analyzer: Optional[Any] = None
+        if llm_config and LLMAnalyzer is not None:
+            try:
+                self.llm_analyzer = LLMAnalyzer(llm_config)
+            except Exception as exc:  # pragma: no cover - runtime guard
+                print(f"DEBUG: Failed to initialize LLMAnalyzer: {exc}")
+                self.llm_analyzer = None
         
         # Initialize report writers with LLM config
         # Important: Pass llm_config when creating default writers
@@ -240,6 +252,29 @@ class DesignAssistant:
 
         contrast_report = self.contrast_auditor.audit(screenshot.image)
         dark_pattern_report = self.dark_pattern_auditor.audit(dom_text)
+        llm_analysis: Optional[dict] = None
+        if self.llm_analyzer and self.llm_analyzer.is_available():
+            llm_analysis = self._refine_with_llm(
+                screenshot_path=str(getattr(screenshot, "path", "")) if screenshot else None,
+                url=selenium_artifacts.url if selenium_artifacts else None,
+                dom_excerpt=dom_text,
+                accessibility_report=accessibility_report,
+                contrast_report=contrast_report,
+                dark_pattern_report=dark_pattern_report,
+            )
+
+            if llm_analysis:
+                if "dark_patterns" in llm_analysis:
+                    dark_pattern_report = self._llm_to_dark_pattern_report(
+                        llm_analysis["dark_patterns"],
+                        fallback=dark_pattern_report,
+                    )
+                if "contrast" in llm_analysis:
+                    contrast_report = self._llm_to_contrast_report(
+                        llm_analysis["contrast"],
+                        fallback=contrast_report,
+                    )
+
         fairness_score = DesignFairnessScore.from_components(
             accessibility_score=accessibility_report.score if accessibility_report else None,
             ethical_score=dark_pattern_report.score,
@@ -268,6 +303,9 @@ class DesignAssistant:
                 }
             )
 
+        if llm_analysis:
+            artifacts["llm_analysis"] = llm_analysis
+
         result = PipelineResult(
             accessibility=accessibility_report,
             contrast=contrast_report,
@@ -292,3 +330,141 @@ class DesignAssistant:
                 ),
             )
         return collector_result
+
+    def _refine_with_llm(
+        self,
+        *,
+        screenshot_path: Optional[str],
+        url: Optional[str],
+        dom_excerpt: Optional[str],
+        accessibility_report: Optional[AccessibilityReport],
+        contrast_report: ContrastReport,
+        dark_pattern_report: DarkPatternReport,
+    ) -> Optional[dict]:
+        if not self.llm_analyzer:
+            return None
+
+        accessibility_summary = None
+        if accessibility_report is not None:
+            accessibility_summary = {
+                "score": getattr(accessibility_report, "score", None),
+                "violation_count": len(getattr(accessibility_report, "violations", []) or []),
+            }
+
+        contrast_summary = {
+            "heuristic_average_contrast": contrast_report.average_contrast,
+            "heuristic_violation_count": len(contrast_report.violations or []),
+        }
+
+        dark_pattern_summary = {
+            "heuristic_score": dark_pattern_report.score,
+            "heuristic_flag_count": len(dark_pattern_report.flags or []),
+            "heuristic_examples": [flag.to_dict() for flag in dark_pattern_report.flags][:5],
+        }
+
+        return self.llm_analyzer.assess_design_multimodal(
+            screenshot_path=screenshot_path,
+            url=url,
+            dom_excerpt=dom_excerpt,
+            accessibility_summary=accessibility_summary,
+            contrast_summary=contrast_summary,
+            dark_pattern_summary=dark_pattern_summary,
+        )
+
+    def _llm_to_dark_pattern_report(
+        self,
+        payload: dict,
+        *,
+        fallback: DarkPatternReport,
+    ) -> DarkPatternReport:
+        severity_weights = {
+            "none": 0.0,
+            "low": 0.25,
+            "medium": 0.5,
+            "high": 0.9,
+        }
+
+        flags = []
+        weighted_sum = 0.0
+        count = 0
+
+        for item in payload.get("patterns", []):
+            label = (item.get("label") or "Dark Pattern").strip()
+            severity = (item.get("severity") or "none").lower()
+            confidence = float(item.get("confidence", 0.0))
+            explanation = (item.get("explanation") or "").strip()
+            recommendation = (item.get("recommendation") or "").strip()
+
+            details = []
+            if explanation:
+                details.append(explanation)
+            if recommendation:
+                details.append(f"Recommendation: {recommendation}")
+            details.append(f"Severity: {severity.title()} | Confidence: {confidence:.2f}")
+
+            flags.append(
+                DarkPatternFlag(
+                    label=label,
+                    score=confidence,
+                    text=" \n".join(details),
+                )
+            )
+
+            weighted_sum += severity_weights.get(severity, 0.0) * confidence
+            count += 1
+
+        if payload.get("overall_score") is not None:
+            score = float(payload["overall_score"])
+        elif count:
+            score = max(0.0, 1.0 - (weighted_sum / count))
+        else:
+            score = fallback.score
+
+        score = max(0.0, min(1.0, score))
+
+        raw_outputs = {"llm": payload}
+        if fallback.raw_outputs:
+            raw_outputs["heuristic"] = fallback.raw_outputs
+
+        return DarkPatternReport(score=score, flags=flags, raw_outputs=raw_outputs)
+
+    def _llm_to_contrast_report(
+        self,
+        payload: dict,
+        *,
+        fallback: ContrastReport,
+    ) -> ContrastReport:
+        issues = []
+        for item in payload.get("issues", []):
+            area = (item.get("area") or "Contrast Issue").strip()
+            severity = (item.get("severity") or "unknown").strip()
+            explanation = (item.get("explanation") or "").strip()
+            recommendation = (item.get("recommendation") or "").strip()
+
+            description_parts = [area]
+            if explanation:
+                description_parts.append(explanation)
+            if recommendation:
+                description_parts.append(f"Recommendation: {recommendation}")
+            description_parts.append(f"Severity: {severity.title()}")
+
+            issues.append(
+                ContrastViolation(
+                    bbox=None,
+                    contrast_ratio=item.get("contrast_ratio_estimate"),
+                    description=" | ".join(description_parts),
+                )
+            )
+
+        if payload.get("overall_score") is not None:
+            avg_contrast = float(payload["overall_score"])
+        else:
+            avg_contrast = fallback.average_contrast
+
+        avg_contrast = max(0.0, min(1.0, avg_contrast))
+
+        if not issues and fallback.violations:
+            # Return the original heuristics if LLM found nothing new.
+            return fallback
+
+        return ContrastReport(average_contrast=avg_contrast, violations=issues)

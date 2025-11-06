@@ -1,7 +1,10 @@
 """LLM integration for enhanced report generation using Google Gemini 2.0 Flash."""
 from __future__ import annotations
 
+import json
 import os
+import re
+import textwrap
 from dataclasses import dataclass
 from typing import Optional
 
@@ -648,3 +651,138 @@ class LLMAnalyzer:
             
         except Exception as e:
             return f"Multimodal LLM Analysis Error: {str(e)}"
+
+    def assess_design_multimodal(
+        self,
+        *,
+        screenshot_path: Optional[str] = None,
+        url: Optional[str] = None,
+        dom_excerpt: Optional[str] = None,
+        accessibility_summary: Optional[dict] = None,
+        contrast_summary: Optional[dict] = None,
+        dark_pattern_summary: Optional[dict] = None,
+    ) -> Optional[dict]:
+        """Use the LLM to validate contrast and dark-pattern findings."""
+
+        if not self.is_available():
+            return None
+
+        heuristics_payload = {
+            "accessibility": accessibility_summary or {},
+            "contrast": contrast_summary or {},
+            "dark_patterns": dark_pattern_summary or {},
+            "url": url,
+        }
+
+        prompt = textwrap.dedent(
+            """
+            You are an independent UX fairness auditor. Review the provided website evidence
+            (screenshot plus heuristics) and validate two things:
+
+            1. Ethical UX / Potential Dark Patterns
+               - Identify only genuine manipulative patterns.
+               - Prefer precision over recall; ignore benign persuasive design.
+               - For each confirmed pattern, provide label, severity (none/low/medium/high),
+                 confidence (0.0-1.0) and an explanation users understand.
+               - Suggest a clear recommendation to fix the pattern.
+               - Compute an overall score in [0, 1] where 1.0 means no concerning patterns.
+
+            2. Visual Contrast & Legibility
+               - Focus on real text contrast or readability issues.
+               - Ignore decorative elements or acceptable gradients.
+               - For confirmed contrast issues, state area, severity (low/medium/high),
+                 estimated contrast ratio if visible, and actionable recommendation.
+               - Provide an overall score in [0, 1] where 1.0 means excellent contrast.
+
+            Respond with strict JSON matching:
+
+            {
+              "dark_patterns": {
+                "overall_score": float,
+                "patterns": [
+                  {
+                    "label": string,
+                    "severity": "none" | "low" | "medium" | "high",
+                    "confidence": float,
+                    "explanation": string,
+                    "recommendation": string
+                  }
+                ]
+              },
+              "contrast": {
+                "overall_score": float,
+                "issues": [
+                  {
+                    "area": string,
+                    "severity": "low" | "medium" | "high",
+                    "contrast_ratio_estimate": float | null,
+                    "explanation": string,
+                    "recommendation": string
+                  }
+                ]
+              }
+            }
+
+            Do not emit any text outside the JSON object.
+            """
+        )
+
+        if dom_excerpt:
+            truncated = dom_excerpt[:4000]
+        else:
+            truncated = ""
+
+        prompt += "\nHeuristic signals (JSON):\n" + json.dumps(heuristics_payload, ensure_ascii=False) + "\n"
+        if truncated:
+            prompt += "\nDOM excerpt (truncated):\n" + truncated + "\n"
+
+        content_parts = []
+
+        if screenshot_path and os.path.exists(screenshot_path):
+            try:
+                from PIL import Image as PILImage
+
+                image = PILImage.open(screenshot_path)
+                content_parts.append(image)
+            except Exception as exc:  # pragma: no cover - best effort context
+                print(f"DEBUG LLM: Failed to load screenshot for multimodal check: {exc}")
+
+        content_parts.append(prompt)
+
+        generation_config = {
+            "temperature": min(self.config.temperature, 0.3),
+            "max_output_tokens": min(self.config.max_tokens, 4000),
+        }
+
+        try:
+            response = self._model.generate_content(
+                content_parts,
+                generation_config=generation_config,
+            )
+            raw_text = (response.text or "").strip()
+            return self._parse_json_response(raw_text)
+        except Exception as exc:
+            print(f"DEBUG LLM: Multimodal validation failed: {exc}")
+            return None
+
+    def _parse_json_response(self, raw_text: str) -> Optional[dict]:
+        if not raw_text:
+            return None
+
+        cleaned = raw_text.strip()
+
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r"^```(?:json)?", "", cleaned).strip()
+            cleaned = re.sub(r"```$", "", cleaned).strip()
+
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            # Attempt to locate the first JSON object in the string
+            match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+            if match:
+                try:
+                    return json.loads(match.group(0))
+                except json.JSONDecodeError:
+                    return None
+            return None

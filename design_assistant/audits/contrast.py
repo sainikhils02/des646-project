@@ -10,17 +10,22 @@ import numpy as np
 
 @dataclass(frozen=True)
 class ContrastViolation:
-    """Represents a detected low-contrast region."""
+    """Represents a detected or validated low-contrast region."""
 
-    bbox: Tuple[int, int, int, int]
-    contrast_ratio: float
+    bbox: Optional[Tuple[int, int, int, int]] = None
+    contrast_ratio: Optional[float] = None
+    description: Optional[str] = None
 
     def to_dict(self) -> dict:
-        x, y, w, h = self.bbox
-        return {
-            "bbox": {"x": x, "y": y, "width": w, "height": h},
+        data: dict = {
             "contrast_ratio": self.contrast_ratio,
         }
+        if self.bbox:
+            x, y, w, h = self.bbox
+            data["bbox"] = {"x": x, "y": y, "width": w, "height": h}
+        if self.description:
+            data["description"] = self.description
+        return data
 
 
 @dataclass(frozen=True)

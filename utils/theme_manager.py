@@ -62,12 +62,6 @@ class ThemeManager:
                 .js-plotly-plot .plotly {
                     background-color: white !important;
                 }
-                /* Email popover */
-                .email-popover {
-                    background-color: #262730;
-                    color: #fafafa;
-                    border: 1px solid #555555;
-                }
                 /* Text color adjustments */
                 p, h1, h2, h3, h4, h5, h6, span, div {
                     color: #fafafa;
@@ -96,10 +90,6 @@ class ThemeManager:
                     background-color: #ffffff;
                     border: 1px solid #e6e6e6;
                     color: #262730;
-                }
-                .email-popover {
-                    background-color: white;
-                    border: 1px solid #e6e6e6;
                 }
             </style>
             """
