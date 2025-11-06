@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": 1,
+    "timestamp": "2025-11-06T10:34:10.099857",
+    "input_type": "url",
+    "input_value": "https://takeuforward.org/",
+    "fairness_score": 0.9199999999999999,
+    "accessibility_score": 0.84,
+    "contrast_score": 0.0,
+    "ethical_ux_score": 1.0,
+    "output_dir": "outputs",
+    "runtime": 58.603283166885376
+  }
+]

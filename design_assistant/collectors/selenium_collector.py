@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import json
 import shutil
 import time
 from dataclasses import dataclass
@@ -109,9 +110,24 @@ class SeleniumCollector:
             if Axe is not None:
                 axe = Axe(driver)
                 axe.inject()
-                axe_results = axe.run()
+                # Use a custom minimal runner that returns JSON-stringified results to avoid
+                # Chrome DevTools Runtime.callFunctionOn deserialization issues with large objects.
+                try:
+                    axe_results = self._run_axe_minimal(driver)
+                except Exception:
+                    # Fallback to library run; still try to stringify client-side to reduce issues
+                    axe_results = self._run_axe_stringified(driver)
+
                 axe_json_path = output_dir / "axe_results.json"
-                axe.write_results(axe_results, str(axe_json_path))
+                try:
+                    with open(axe_json_path, "w", encoding="utf-8") as f:
+                        json.dump(axe_results, f, ensure_ascii=False, indent=2)
+                except Exception:
+                    # As a last resort, use library writer if available
+                    try:
+                        axe.write_results(axe_results, str(axe_json_path))
+                    except Exception:
+                        pass
         finally:
             driver.quit()
 
@@ -124,6 +140,62 @@ class SeleniumCollector:
             axe_results=axe_results,
             accessibility=accessibility_report,
         )
+
+    def _run_axe_minimal(self, driver: Any) -> dict:
+        """Run axe-core in the page and return a minimal, serializable result.
+
+        This avoids returning the full axe result object (which can contain non-serializable
+        handles) by JSON-stringifying only the needed fields.
+        """
+        script = """
+        const callback = arguments[0];
+        try {
+            const context = document;
+            const options = {
+                resultTypes: ['violations','incomplete'],
+                runOnly: { type: 'tag', values: ['wcag2a','wcag2aa'] },
+                reporter: 'v2'
+            };
+            // axe is provided by axe.inject()
+            window.axe.run(context, options).then(results => {
+                const minimal = {
+                    violations: results.violations || [],
+                    incomplete: results.incomplete || []
+                };
+                callback(JSON.stringify(minimal));
+            }).catch(err => {
+                callback(JSON.stringify({ error: String(err) }));
+            });
+        } catch (e) {
+            callback(JSON.stringify({ error: String(e) }));
+        }
+        """
+        raw = driver.execute_async_script(script)
+        try:
+            return json.loads(raw) if isinstance(raw, str) else raw
+        except Exception:
+            # If parsing fails, return a best-effort structure
+            return {"error": "Failed to parse axe results", "raw": str(raw)[:1000]}
+
+    def _run_axe_stringified(self, driver: Any) -> dict:
+        """Fallback runner that returns the full results but stringified client-side."""
+        script = """
+        const callback = arguments[0];
+        try {
+            window.axe.run(document, { reporter: 'v2' }).then(results => {
+                callback(JSON.stringify(results));
+            }).catch(err => {
+                callback(JSON.stringify({ error: String(err) }));
+            });
+        } catch (e) {
+            callback(JSON.stringify({ error: String(e) }));
+        }
+        """
+        raw = driver.execute_async_script(script)
+        try:
+            return json.loads(raw) if isinstance(raw, str) else raw
+        except Exception:
+            return {"error": "Failed to parse fallback axe results", "raw": str(raw)[:1000]}
 
     def _default_driver_factory(self) -> Any:
         if webdriver is None:
