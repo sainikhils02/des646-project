@@ -32,7 +32,7 @@ pip install axe-selenium-python  # Optional: for accessibility audits
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/vibex-9/des646-project.git
+    git clone https://github.com/sainikhils02/des646-project.git
     cd des646-project
     ```
 
