@@ -1,0 +1,18 @@
+{
+  "venvPath": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13",
+  "venv": "site-packages",
+  "pythonVersion": "3.13",
+  "pythonPlatform": "Darwin",
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": [
+        "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages"
+      ]
+    }
+  ],
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": "none",
+  "reportOptionalMemberAccess": "warning",
+  "typeCheckingMode": "basic"
+}

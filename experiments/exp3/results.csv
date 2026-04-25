@@ -1,0 +1,5 @@
+page,laplacian_violations,laplacian_avg_contrast,laplacian_score,laplacian_time_ms,kmeans_violations,kmeans_avg_contrast,kmeans_score,kmeans_time_ms,violation_diff
+bad_page,0,0.0,0,8.9,9,2.695,0,124.5,9
+good_page,0,0.0,0,3.6,6,5.224,0,110.9,6
+mixed_page,0,0.0,0,3.2,6,5.735,0,100.5,6
+dark_pattern_heavy,0,0.0,0,2.8,3,4.24,0,87.0,3

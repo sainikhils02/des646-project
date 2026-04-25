@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Accessible Product Page — GoodShop</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 0; color: #1a1a1a; background: #ffffff; line-height: 1.6; }
+        .skip-link { position: absolute; top: -40px; left: 0; background: #005fcc; color: #fff; padding: 8px 16px; z-index: 100; text-decoration: none; font-weight: bold; }
+        .skip-link:focus { top: 0; }
+        header { background: #003d80; color: #fff; padding: 16px 24px; }
+        header h1 { margin: 0; font-size: 24px; }
+        nav { background: #004a99; padding: 8px 24px; }
+        nav a { color: #fff; text-decoration: none; margin-right: 16px; padding: 4px 8px; border-radius: 4px; }
+        nav a:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        nav a:hover { background: rgba(255,255,255,0.2); }
+        main { max-width: 800px; margin: 24px auto; padding: 0 24px; }
+        .product-card { border: 2px solid #003d80; border-radius: 8px; padding: 24px; margin: 16px 0; }
+        .product-card img { max-width: 100%; border-radius: 4px; }
+        .price { font-size: 28px; color: #003d80; font-weight: bold; }
+        .btn-primary { background: #005fcc; color: #fff; border: none; padding: 12px 24px; font-size: 16px; border-radius: 6px; cursor: pointer; }
+        .btn-primary:focus-visible { outline: 3px solid #ffd700; outline-offset: 2px; }
+        .btn-primary:hover { background: #004a99; }
+        label { display: block; font-weight: 600; margin-top: 12px; margin-bottom: 4px; color: #333; }
+        input, select { padding: 8px 12px; border: 2px solid #666; border-radius: 4px; font-size: 14px; width: 100%; max-width: 400px; }
+        input:focus, select:focus { border-color: #005fcc; outline: 2px solid #005fcc; outline-offset: 1px; }
+        footer { background: #1a1a1a; color: #e0e0e0; padding: 24px; text-align: center; margin-top: 40px; }
+        h2 { color: #003d80; border-bottom: 2px solid #003d80; padding-bottom: 8px; }
+        @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <header role="banner">
+        <h1>GoodShop — Accessible E-Commerce</h1>
+    </header>
+
+    <nav aria-label="Main navigation">
+        <a href="#home">Home</a>
+        <a href="#products">Products</a>
+        <a href="#about">About Us</a>
+        <a href="#contact">Contact</a>
+    </nav>
+
+    <main id="main-content">
+        <h2>Featured Product</h2>
+
+        <article class="product-card">
+            <img src="product.jpg" alt="Wireless noise-cancelling headphones, matte black finish, over-ear design" width="400" height="300">
+
+            <h3>Premium Wireless Headphones</h3>
+            <p>Experience crystal-clear audio with our top-rated wireless headphones. Features active noise cancellation, 30-hour battery life, and comfortable memory foam ear cushions.</p>
+
+            <p class="price">₹4,999</p>
+            <p>Free shipping. No hidden fees.</p>
+
+            <button class="btn-primary" aria-label="Add Premium Wireless Headphones to cart">Add to Cart</button>
+        </article>
+
+        <h2>Your Details</h2>
+        <form aria-label="Checkout form">
+            <label for="customer-name">Full Name</label>
+            <input type="text" id="customer-name" name="name" required autocomplete="name">
+
+            <label for="customer-email">Email Address</label>
+            <input type="email" id="customer-email" name="email" required autocomplete="email">
+
+            <label for="customer-phone">Phone Number</label>
+            <input type="tel" id="customer-phone" name="phone" autocomplete="tel">
+
+            <label for="country">Country</label>
+            <select id="country" name="country">
+                <option value="">Select your country</option>
+                <option value="IN">India</option>
+                <option value="US">United States</option>
+                <option value="GB">United Kingdom</option>
+            </select>
+
+            <br><br>
+            <button type="submit" class="btn-primary">Complete Purchase</button>
+        </form>
+
+        <h2>Customer Reviews</h2>
+        <section aria-label="Customer reviews">
+            <blockquote>
+                <p>"Excellent sound quality and very comfortable for long listening sessions."</p>
+                <cite>— Priya M., verified buyer</cite>
+            </blockquote>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>© 2024 GoodShop Inc. Built with accessibility in mind.</p>
+        <nav aria-label="Footer navigation">
+            <a href="#privacy" style="color: #a0c4ff;">Privacy Policy</a> |
+            <a href="#terms" style="color: #a0c4ff;">Terms of Service</a> |
+            <a href="#accessibility" style="color: #a0c4ff;">Accessibility Statement</a>
+        </nav>
+    </footer>
+</body>
+</html>

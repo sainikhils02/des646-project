@@ -1,0 +1,21 @@
+{
+  "keyboard_score": 1.0,
+  "screen_reader_score": 1.0,
+  "combined_score": 1.0,
+  "total_issues": 0,
+  "keyboard_issues": [],
+  "screen_reader_issues": [],
+  "functional_issues": [],
+  "tab_order_length": 14,
+  "aria_tree_summary": {
+    "landmarks_count": 5,
+    "headings_count": 5,
+    "images_without_alt": 0,
+    "buttons_without_name": 0,
+    "links_without_name": 0,
+    "inputs_without_label": 0,
+    "aria_live_regions": 0,
+    "aria_hidden_focusable": 0,
+    "accessible_name_coverage": "14/14"
+  }
+}

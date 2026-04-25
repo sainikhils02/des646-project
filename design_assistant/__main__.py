@@ -8,7 +8,7 @@ from .pipeline import DesignAssistant, InputMode
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the AI-Powered Design Assistant")
+    parser = argparse.ArgumentParser(description="Run the Design Fairness Assistant")
     parser.add_argument("mode", choices=[item.value for item in InputMode])
     parser.add_argument("value", help="URL or path to screenshot, depending on mode")
     parser.add_argument(

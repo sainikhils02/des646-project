@@ -1,8 +1,4 @@
-"""AI-powered report generation for detailed accessibility and UX insights.
-
-This module generates comprehensive, narrative reports combining rule-based templates
-with optional LLM integration (GPT-4o) for enhanced natural language analysis.
-"""
+"""Report generation with rule-based templates and optional LLM integration."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -20,7 +16,7 @@ except ImportError:
 
 @dataclass
 class LLMReportSection:
-    """Individual section of the AI-generated report."""
+    """Individual section of a generated report."""
     
     title: str
     content: str
@@ -28,11 +24,10 @@ class LLMReportSection:
 
 
 class LLMReportGenerator:
-    """Generates comprehensive, narrative reports combining rule-based templates
-    with optional LLM analysis.
+    """Generates narrative reports from audit results.
     
-    When LLM is configured, merges GPT-4o insights with automated audit results
-    for enhanced explanations and recommendations.
+    When an LLM is configured, merges model insights with rule-based
+    audit summaries for additional context.
     """
     
     def __init__(self, llm_config: Optional["LLMConfig"] = None):
@@ -52,14 +47,14 @@ class LLMReportGenerator:
                 print(f"Warning: Could not initialize LLM analyzer: {e}")
                 print("Falling back to rule-based reporting only.")
         
-    def generate_comprehensive_report(self, result: "PipelineResult") -> str:
+    def generate_comprehensive_report(self, result: "PipelineResult") -> str:  # noqa: C901
         """Generate a detailed narrative report from audit results.
         
         Args:
             result: Pipeline result containing all audit data
             
         Returns:
-            Comprehensive markdown-formatted report
+            Markdown-formatted report string
         """
         sections = []
         
@@ -104,7 +99,7 @@ class LLMReportGenerator:
         return self._format_report(sections)
     
     def _generate_llm_comprehensive_analysis(self, result: "PipelineResult") -> Optional[LLMReportSection]:
-        """Generate comprehensive analysis using LLM with screenshot and HTML."""
+        """Generate analysis using LLM with screenshot and HTML."""
         try:
             # Extract file paths from artifacts
             screenshot_path = result.artifacts.get('screenshot_path')
@@ -161,7 +156,7 @@ class LLMReportGenerator:
             
             if llm_response and not llm_response.startswith("Error"):
                 # Add computed metrics summary at the top
-                metrics_summary = f"""# Comprehensive Design Audit Report
+                metrics_summary = f"""# Design Fairness Audit Report
 
 ## Computed Metrics Summary
 
@@ -175,14 +170,14 @@ class LLMReportGenerator:
 
 ---
 
-# AI-Powered Comprehensive Analysis
+# LLM-Assisted Analysis
 
 {llm_response}
 
 """
                 print(f"DEBUG: Returning comprehensive analysis section")
                 return LLMReportSection(
-                    title="Comprehensive Analysis",
+                    title="Full Analysis",
                     content=metrics_summary,
                     severity="info"
                 )
@@ -190,7 +185,7 @@ class LLMReportGenerator:
                 print(f"DEBUG: LLM response empty or error: {llm_response}")
         except Exception as e:
             import traceback
-            print(f"Warning: Comprehensive LLM analysis failed: {e}")
+            print(f"Warning: LLM analysis failed: {e}")
             print(f"Traceback: {traceback.format_exc()}")
         
         return None
@@ -232,8 +227,7 @@ class LLMReportGenerator:
 - {len(result.contrast.violations)} low-contrast regions identified
 - {len(result.dark_patterns.flags)} potential dark patterns flagged
 
-This report provides a comprehensive analysis of the interface's compliance with WCAG accessibility standards, 
-visual design quality, and ethical user experience patterns.
+This report covers WCAG compliance, visual contrast quality, and ethical UX patterns.
 """
         return LLMReportSection(
             title="Executive Summary",
@@ -276,7 +270,7 @@ visual design quality, and ethical user experience patterns.
                     violations=violations_data,
                     score=acc.score
                 )
-                llm_insights = f"\n\n### AI-Powered Analysis\n\n{llm_response}\n"
+                llm_insights = f"\n\n### LLM Analysis\n\n{llm_response}\n"
             except Exception as e:
                 print(f"Warning: LLM analysis failed: {e}")
         
@@ -352,7 +346,7 @@ These accessibility violations may prevent or hinder users with:
                     violations=violations_data,
                     avg_contrast=avg_contrast
                 )
-                llm_insights = f"\n\n### AI-Powered Analysis\n\n{llm_response}\n"
+                llm_insights = f"\n\n### LLM Analysis\n\n{llm_response}\n"
             except Exception as e:
                 print(f"Warning: LLM analysis failed: {e}")
         
@@ -430,7 +424,7 @@ Low contrast affects:
                     flags=flags_data,
                     score=dp.score
                 )
-                llm_insights = f"\n\n### AI-Powered Ethical Assessment\n\n{llm_response}\n"
+                llm_insights = f"\n\n### LLM Ethical Assessment\n\n{llm_response}\n"
             except Exception as e:
                 print(f"Warning: LLM analysis failed: {e}")
         
@@ -547,7 +541,7 @@ A trustworthy interface should:
                     "fairness_score": result.fairness.value
                 }
                 llm_response = self.llm_analyzer.generate_recommendations(audit_summary)
-                llm_recommendations = f"\n\n### AI-Powered Recommendations\n\n{llm_response}\n"
+                llm_recommendations = f"\n\n### LLM Recommendations\n\n{llm_response}\n"
             except Exception as e:
                 print(f"Warning: LLM recommendations failed: {e}")
         
@@ -572,7 +566,7 @@ A trustworthy interface should:
    - Remove obvious dark pattern language
 
 2. **Medium Term (1-2 months)**
-   - Comprehensive WCAG audit and remediation
+   - Full WCAG audit and remediation
    - Redesign low-contrast UI components
    - Establish ethical design guidelines
 
@@ -633,7 +627,7 @@ A trustworthy interface should:
 - **Accessibility**: axe-core via Selenium
 - **Contrast Detection**: OpenCV with WCAG luminance calculations
 - **Dark Patterns**: {"Transformer NLP model" if result.dark_patterns.raw_outputs else "Keyword heuristics"}
-- **Reporting**: AI-powered analysis with contextual insights
+- **Reporting**: Rule-based templates with optional LLM insights
 
 ### Limitations
 
@@ -651,8 +645,8 @@ A trustworthy interface should:
     
     def _format_report(self, sections: list[LLMReportSection]) -> str:
         """Format all sections into final report."""
-        report = "# Comprehensive Design Fairness Audit Report\n\n"
-        report += f"*Generated by AI-Powered Design Assistant*\n\n"
+        report = "# Design Fairness Audit Report\n\n"
+        report += "*Generated by Design Fairness Assistant*\n\n"
         report += "---\n\n"
         
         for section in sections:
@@ -661,14 +655,14 @@ A trustworthy interface should:
         report += """
 ## About This Report
 
-This comprehensive audit was generated using AI-powered analysis tools that combine:
+This audit was generated using:
 - Automated accessibility testing (axe-core)
 - Computer vision for contrast analysis (OpenCV)
-- Natural language processing for dark pattern detection (Transformers)
-- Intelligent report generation using contextual templates and rule-based analysis
+- Keyword-based dark pattern detection
+- Rule-based report templates with optional Gemini LLM integration
 
-**Note**: The narrative explanations are generated using intelligent templates based on audit results. 
-Future versions may integrate large language models (GPT, Claude, etc.) for more natural language generation.
+**Note**: Narrative explanations use rule-based templates derived from audit results.
+When a Gemini API key is configured, additional LLM-generated insights are included.
 
 For questions or to request a manual accessibility audit, please consult with accessibility experts.
 """

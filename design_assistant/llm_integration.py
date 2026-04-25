@@ -1,4 +1,3 @@
-"""LLM integration for enhanced report generation using Google Gemini 2.0 Flash."""
 from __future__ import annotations
 
 import json

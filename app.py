@@ -1,4 +1,4 @@
-"""Streamlit entry point for the AI-Powered Design Assistant."""
+"""Streamlit entry point for the Design Fairness Assistant."""
 from __future__ import annotations
 
 import os
@@ -48,7 +48,7 @@ except ImportError:
 
 # Page configuration
 st.set_page_config(
-    page_title="AI-Powered Design Assistant",
+    page_title="Design Fairness Assistant",
     page_icon="🎨",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -362,6 +362,9 @@ def render_audit_results(result, *, runtime: Optional[float] = None, llm_enabled
             'Ethical UX': result.dark_patterns.score,
             'Overall Fairness': fairness_value,
         }
+        if getattr(result, 'agentic', None) is not None:
+            scores['Keyboard'] = result.agentic.keyboard_score
+            scores['Screen Reader'] = result.agentic.screen_reader_score
         fig_radar = create_score_radar(scores)
         st.plotly_chart(fig_radar, use_container_width=True)
 
@@ -428,6 +431,129 @@ def render_audit_results(result, *, runtime: Optional[float] = None, llm_enabled
                     and industry best practices.
                     """
                 )
+
+    # --- DFS Tier Breakdown ---
+    if hasattr(result.fairness, 'technical'):
+        st.markdown("### 🏗️ DFS Tier Breakdown")
+        tc1, tc2, tc3 = st.columns(3)
+
+        with tc1:
+            tech_val = result.fairness.technical.value
+            fig_t = create_score_gauge(tech_val, "Technical")
+            st.plotly_chart(fig_t, use_container_width=True)
+            if hasattr(result.fairness.technical, 'sub_scores'):
+                for k, v in result.fairness.technical.sub_scores.items():
+                    st.caption(f"  {k}: {v:.2f}")
+
+        with tc2:
+            perc_val = result.fairness.perceptual.value
+            fig_p = create_score_gauge(perc_val, "Perceptual")
+            st.plotly_chart(fig_p, use_container_width=True)
+            if hasattr(result.fairness.perceptual, 'sub_scores'):
+                for k, v in result.fairness.perceptual.sub_scores.items():
+                    st.caption(f"  {k}: {v:.2f}")
+
+        with tc3:
+            eth_val = result.fairness.ethical.value
+            fig_e = create_score_gauge(eth_val, "Ethical")
+            st.plotly_chart(fig_e, use_container_width=True)
+            if hasattr(result.fairness.ethical, 'sub_scores'):
+                for k, v in result.fairness.ethical.sub_scores.items():
+                    st.caption(f"  {k}: {v:.2f}")
+
+    # --- Agentic Audit Results ---
+    if getattr(result, 'agentic', None) is not None:
+        st.markdown("### 🤖 Agentic Audit (Interaction Simulation)")
+
+        ag = result.agentic
+        ac1, ac2, ac3, ac4 = st.columns(4)
+        with ac1:
+            st.metric("⌨️ Keyboard Score", f"{ag.keyboard_score:.2f}")
+        with ac2:
+            st.metric("🔊 Screen Reader Score", f"{ag.screen_reader_score:.2f}")
+        with ac3:
+            st.metric("🔢 Tab Order Elements", len(ag.tab_order))
+        with ac4:
+            st.metric("⚠️ Total Issues", ag.total_issues)
+
+        if ag.keyboard_issues:
+            with st.expander(f"⌨️ Keyboard Issues ({len(ag.keyboard_issues)})", expanded=True):
+                for issue in ag.keyboard_issues:
+                    severity_icon = {"critical": "🔴", "serious": "🟠", "moderate": "🟡", "minor": "🔵"}.get(issue.severity, "⚪")
+                    st.markdown(f"{severity_icon} **[{issue.severity.upper()}]** {issue.description}")
+                    if issue.element_info:
+                        st.caption(f"Element: `{issue.element_info}`")
+                    if issue.wcag_criterion:
+                        st.caption(f"WCAG: {issue.wcag_criterion}")
+                    if issue.recommendation:
+                        st.info(f"💡 {issue.recommendation}")
+                    st.markdown("---")
+
+        if ag.screen_reader_issues:
+            with st.expander(f"🔊 Screen Reader Issues ({len(ag.screen_reader_issues)})", expanded=True):
+                for issue in ag.screen_reader_issues:
+                    severity_icon = {"critical": "🔴", "serious": "🟠", "moderate": "🟡", "minor": "🔵"}.get(issue.severity, "⚪")
+                    st.markdown(f"{severity_icon} **[{issue.severity.upper()}]** {issue.description}")
+                    if issue.element_info:
+                        st.caption(f"Element: `{issue.element_info}`")
+                    if issue.wcag_criterion:
+                        st.caption(f"WCAG: {issue.wcag_criterion}")
+                    if issue.recommendation:
+                        st.info(f"💡 {issue.recommendation}")
+                    st.markdown("---")
+
+        if ag.functional_issues:
+            with st.expander(f"🔧 Functional Issues ({len(ag.functional_issues)})", expanded=False):
+                for issue in ag.functional_issues:
+                    severity_icon = {"critical": "🔴", "serious": "🟠", "moderate": "🟡", "minor": "🔵"}.get(issue.severity, "⚪")
+                    st.markdown(f"{severity_icon} **[{issue.severity.upper()}]** {issue.description}")
+                    if issue.recommendation:
+                        st.info(f"💡 {issue.recommendation}")
+                    st.markdown("---")
+
+    # --- Remediation Suggestions ---
+    if getattr(result, 'remediation', None) is not None and result.remediation.suggestions:
+        st.markdown("### 🔧 Predictive Remediation")
+        st.markdown(f"*{result.remediation.summary}*")
+
+        rem_col1, rem_col2 = st.columns(2)
+        with rem_col1:
+            st.metric("Suggestions", len(result.remediation.suggestions))
+        with rem_col2:
+            delta = result.remediation.total_predicted_dfs_delta
+            st.metric("Predicted DFS Improvement", f"+{delta:.3f}" if delta > 0 else f"{delta:.3f}")
+
+        for i, suggestion in enumerate(result.remediation.suggestions):
+            priority_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(suggestion.priority, "⚪")
+            with st.expander(f"{priority_icon} Fix #{i+1}: {suggestion.issue_description[:80]}", expanded=(i < 3)):
+                st.markdown(f"**Category:** {suggestion.issue_category} | **Priority:** {suggestion.priority}")
+
+                fix_col1, fix_col2 = st.columns(2)
+                with fix_col1:
+                    st.markdown("**Before:**")
+                    st.code(suggestion.original_html, language="html")
+                with fix_col2:
+                    st.markdown("**After:**")
+                    st.code(suggestion.fixed_html, language="html")
+
+                st.markdown(f"**Explanation:** {suggestion.explanation}")
+
+                # Trade-off impact
+                impact = suggestion.predicted_impact
+                st.markdown("**Predicted DFS Impact:**")
+                imp_cols = st.columns(3)
+                with imp_cols[0]:
+                    t_delta = impact.get("technical", 0)
+                    st.metric("Technical", f"{t_delta:+.3f}", delta=f"{t_delta:+.3f}" if t_delta != 0 else None)
+                with imp_cols[1]:
+                    p_delta = impact.get("perceptual", 0)
+                    st.metric("Perceptual", f"{p_delta:+.3f}", delta=f"{p_delta:+.3f}" if p_delta != 0 else None)
+                with imp_cols[2]:
+                    e_delta = impact.get("ethical", 0)
+                    st.metric("Ethical", f"{e_delta:+.3f}", delta=f"{e_delta:+.3f}" if e_delta != 0 else None)
+
+                if suggestion.trade_off_note:
+                    st.warning(f"⚖️ Trade-off: {suggestion.trade_off_note}")
 
     st.markdown("### 📄 Report Viewer")
     markdown_path = Path("outputs") / "audit_report.md"
@@ -691,12 +817,12 @@ with st.sidebar:
 
 # Main content based on navigation
 if st.session_state.current_page == "Home":
-    st.markdown("<div class='main-header'>AI-Powered Design Assistant</div>", 
+    st.markdown("<div class='main-header'>Design Fairness Assistant</div>", 
                 unsafe_allow_html=True)
     
     st.markdown("""
     <div style='text-align: center; font-size: 1.2rem; color: #666; margin-bottom: 1rem;'>
-        Evaluate accessibility, contrast, and dark pattern risks with AI-powered analysis
+        Evaluate accessibility, contrast, and dark pattern risks with automated analysis
     </div>
     """, unsafe_allow_html=True)
     
@@ -1219,7 +1345,7 @@ elif st.session_state.current_page == "About":
     st.markdown("## ℹ️ About Design Assistant")
     
     st.markdown("""
-    ### 🎨 AI-Powered Design Assistant
+    ### 🎨 Design Fairness Assistant
     
     A comprehensive tool for evaluating web design accessibility, contrast compliance, 
     and ethical UX patterns using advanced AI analysis.
@@ -1262,7 +1388,7 @@ elif st.session_state.current_page == "About":
 st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: #666; padding: 20px;'>"
-    "🎨 AI-Powered Design Assistant v1.0 | Making the web better, one audit at a time<br>"
+    "🎨 Design Fairness Assistant v1.0 | Making the web better, one audit at a time<br>"
     "<small>Charts displayed with white backgrounds and black text for optimal readability</small>"
     "</div>",
     unsafe_allow_html=True

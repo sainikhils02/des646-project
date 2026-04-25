@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 
 try:
     from transformers import pipeline
-except ImportError:  # pragma: no cover - optional dependency
+except ImportError: 
     pipeline = None
 
 
@@ -132,8 +132,47 @@ class DarkPatternAuditor:
         return "", 0.0
 
     def _default_keyword_map(self) -> Dict[str, List[str]]:
+        """Keyword map based on Mathur et al. (2019) dark-pattern taxonomy."""
         return {
-            "Urgency": ["last chance", "limited time", "hurry", "expires soon"],
-            "Confirm-shaming": ["are you sure", "don't miss", "you'll regret"],
-            "Misdirection": ["preselected", "default", "hidden fee", "sneak"],
+            "Urgency": [
+                "last chance", "limited time", "hurry", "expires soon",
+                "act now", "only today", "ending soon", "don't wait",
+                "running out", "selling fast", "almost gone", "final hours",
+                "countdown", "offer ends", "while supplies last",
+            ],
+            "Confirm-shaming": [
+                "are you sure", "don't miss", "you'll regret",
+                "no thanks, i don't want", "i prefer to pay full price",
+                "no, i don't like saving", "i'll pass on this",
+                "not interested in", "i don't need", "continue without",
+            ],
+            "Misdirection": [
+                "preselected", "default", "hidden fee", "sneak",
+                "recommended plan", "best value", "most popular",
+                "selected for you", "opted in", "already added",
+            ],
+            "Forced Action": [
+                "sign up to continue", "create account to",
+                "login required", "must register", "mandatory",
+                "share to unlock", "invite friends to", "required field",
+                "you must agree", "accept all", "subscribe to proceed",
+            ],
+            "Sneaking": [
+                "hidden cost", "additional fee", "processing fee",
+                "service charge", "bait and switch", "added to cart",
+                "auto-renew", "automatic renewal", "recurring charge",
+                "fine print", "terms apply", "conditions may",
+            ],
+            "Obstruction": [
+                "cancel subscription", "hard to cancel", "call to cancel",
+                "contact us to", "email to unsubscribe", "14-day cancellation",
+                "cancellation fee", "no refund", "retention offer",
+                "are you really sure", "we're sorry to see you go",
+            ],
+            "Social Proof": [
+                "other users are", "people are viewing", "just purchased",
+                "trending now", "popular choice", "users also bought",
+                "only a few left", "in high demand", "verified reviews",
+                "trusted by millions",
+            ],
         }

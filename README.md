@@ -1,205 +1,319 @@
-# AI-Powered Design Assistant
+# Unified AI-Assisted Framework for Design Fairness Evaluation
 
-The **AI-Powered Design Assistant** is a comprehensive tool designed to evaluate digital designs for **fairness**, **accessibility**, and **ethical user experience**. Built with **Python** and **Streamlit**, it performs automated audits on either live web pages (via URL) or uploaded screenshots, generating a holistic **Design Fairness Score** that reflects accessibility compliance, visual contrast, and ethical UX patterns.
+A unified framework for evaluating **design fairness** in digital interfaces, combining accessibility compliance, perceptual contrast analysis, ethical dark-pattern detection, and agent-based interaction simulation into a single hierarchical **Design Fairness Score (DFS)**.
+
+
+## Architecture
+
+```
+                              ┌────────────────────────────────┐
+                              │  Accessibility Auditor         │
+                              │  (axe-core WCAG 2.1)          │
+                              ├────────────────────────────────┤
+URL / Screenshot ──→ Collect ─┤  Contrast Auditor              │
+                              │  (KMeans-CIELAB + Laplacian)   │──→ Fusion ──→ Remediation ──→ Reports
+                              ├────────────────────────────────┤     (DFS)      Engine          (PDF/MD/JSON)
+                              │  Dark-Pattern Detector          │
+                              │  (7 Mathur categories + LLM)   │
+                              ├────────────────────────────────┤
+                              │  Agentic Auditor               │
+                              │  (Keyboard sim + SR walker)    │
+                              └────────────────────────────────┘
+```
+
+**Design Fairness Score (DFS)** — hierarchical 3-tier formula:
+```
+DFS = α · Technical + β · Ethical + (1-α-β) · Perceptual
+
+  Technical  = 0.5 · Accessibility + 0.25 · Keyboard + 0.25 · ScreenReader
+  Perceptual = Contrast score
+  Ethical    = Dark-pattern score
+
+Gating: if Technical < 0.3, DFS is scaled down by Technical/0.3
+```
+Default weights: α=0.4, β=0.3. All configurable via the Streamlit dashboard.
+
+**Weight rationale:** α=0.4 gives technical accessibility the largest share because WCAG conformance is a legal requirement (ADA Section 508, EU Directive 2016/2102). β=0.3 for ethics reflects that manipulative patterns erode user autonomy. Perceptual takes the remainder (0.3) as contrast affects comfort rather than capability.
 
 ---
 
-## 🚀 Key Features
+## Features
 
-- **Multi-Modal Input:** Analyze designs from a live **URL** or a **screenshot** (PNG/JPG).
-- **Accessibility Auditing:** Performs WCAG compliance checks using the `axe-core` engine through Selenium.
-- **Contrast Analysis:** Uses OpenCV-based heuristics to detect low-contrast text and UI regions.
-- **Ethical UX Scoring:** Identifies manipulative “dark patterns” using a Transformer-based NLP model (Hugging Face or custom fine-tuned).
-- **AI-Enhanced Analysis:** Optionally integrates **Google Gemini** for multimodal validation and natural-language audit insights.
-- **Interactive Dashboard:** Streamlit interface with Plotly visualizations for real-time exploration of audit results and trends.
-- **Comprehensive Reporting:** Generates structured reports in **Markdown**, **PDF**, and **JSON** formats.
-- **Audit History:** Saves all audits for historical analysis, comparison, and progress tracking.
-- **Configurable Pipeline:** Modular architecture allows customization of thresholds and scoring weights.
-
----
-
-## 🧠 Technology Stack
-
-| Layer | Tools & Libraries |
-|-------|-------------------|
-| **Frontend** | Streamlit, Plotly |
-| **Auditing** | Selenium, axe-core, OpenCV |
-| **AI/NLP** | Google Gemini (optional), Hugging Face Transformers |
-| **Reporting** | Markdown, ReportLab (PDF), JSON |
-| **Language** | Python 3.8+ |
+| Module | Description |
+|--------|-------------|
+| **Accessibility Auditor** | WCAG 2.1 compliance checks via axe-core engine (injected into Selenium) |
+| **Contrast Auditor** | Dual-method: Laplacian edge detection + KMeans-CIELAB colour segmentation with WCAG ratio computation |
+| **Dark-Pattern Detector** | 79 keywords across 7 Mathur et al. taxonomy categories; optional Gemini LLM validation pass |
+| **Agentic Auditor** | Simulates keyboard-only Tab navigation (focus indicators, skip-links, traps) + screen-reader ARIA tree traversal (landmarks, headings, alt, labels) |
+| **Hierarchical DFS** | 3-tier scoring with gating mechanism that penalises critically inaccessible interfaces |
+| **Predictive Remediation** | Generates HTML/CSS/ARIA code patches with per-tier impact estimates (Δ_technical, Δ_perceptual, Δ_ethical) |
+| **Streamlit Dashboard** | Interactive UI with radar charts, tier gauges, issue tables, remediation suggestions, and downloadable reports |
 
 ---
 
-## ⚙️ Installation & Setup
+## Installation
 
-### 1. Clone the repository
+### Prerequisites
+- **Python 3.10+**
+- **Google Chrome** (for Selenium-based auditing and agentic simulation)
+- **ChromeDriver** (auto-installed by `webdriver-manager`)
+
+### Step 1: Clone and install
 ```bash
 git clone https://github.com/sainikhils02/des646-project.git
 cd des646-project
-```
-
-### 2. Create a virtual environment
-```bash
 python -m venv venv
 source venv/bin/activate    # macOS/Linux
 # venv\Scripts\activate     # Windows
-```
-
-### 3. Install dependencies
-If you already have a `requirements.txt` file:
-```bash
 pip install -r requirements.txt
 ```
 
-If not, create one with:
-```
-streamlit
-pandas
-plotly
-axe-selenium-python
-opencv-python
-transformers
-reportlab
-selenium
-```
-
-Then run:
+### Step 2 (Optional): Enable Google Gemini LLM
+The framework works fully without an API key (all modules have rule-based fallbacks). To enable LLM-powered dark-pattern validation and remediation code generation:
 ```bash
-pip install -r requirements.txt
+# Get a key from https://aistudio.google.com/apikey
+export GOOGLE_API_KEY="your-api-key-here"          # macOS/Linux 
+# $env:GOOGLE_API_KEY="your-api-key-here"          # Windows PowerShell
 ```
 
-### 4. (Optional) Enable Gemini AI Integration
-To enable Google Gemini-based AI analysis:
-
-1. Get an API key from [Google AI Studio](https://aistudio.google.com/apikey)
-2. Set it as an environment variable:
-
-```bash
-# macOS/Linux
-export GOOGLE_API_KEY="YOUR_API_KEY"
-
-# Windows PowerShell
-$env:GOOGLE_API_KEY="YOUR_API_KEY"
+Or set it in the `.env` file:
+```
+GOOGLE_API_KEY=your-api-key-here
 ```
 
 ---
 
-## 💻 Running the Application
+## Usage
 
-### Option 1 – Streamlit Dashboard
+### Option 1: Streamlit Dashboard (recommended)
 ```bash
 streamlit run app.py
 ```
+This opens an interactive web UI at `http://localhost:8501` where you can:
+- **Enter a URL** or **upload a screenshot** to audit
+- **Adjust weights** (α, β) via sliders to see how DFS changes
+- **View 3-tier DFS breakdown** with gauge charts (Technical / Perceptual / Ethical)
+- **Browse agentic findings**: keyboard issues (focus indicators, skip-links, traps), screen-reader issues (landmarks, headings, ARIA)
+- **See remediation suggestions**: before/after code patches with per-tier impact vectors
+- **Download reports** in PDF, Markdown, and JSON formats
 
-This opens the interactive web UI in your browser.
-
-**Dashboard sections:**
-1. **Home** – Overview of the tool’s features.  
-2. **Audit** – Input URL or screenshot, adjust weights, and run the audit.  
-3. **Reports** – Visual summaries (radar/gauge charts, tables, scores).  
-4. **History** – Explore or delete past audits.  
-5. **About** – Details on methods and technologies used.
-
-### Option 2 – Command-Line Interface
-Run directly from CLI:
+### Option 2: Command-Line Interface
 ```bash
-python -m design_assistant <mode> <value> [--output-dir <path>]
+# Audit a live URL (runs all 4 auditors + fusion + remediation)
+python -m design_assistant url https://example.com --output-dir outputs/
+
+# Audit a local screenshot
+python -m design_assistant screenshot ./design.png --output-dir outputs/
 ```
+This generates `audit.json`, `audit.pdf`, and `audit_report.md` in the output directory.
 
-**Examples:**
+### Option 3: End-to-End Demo on Real URL
 ```bash
-python -m design_assistant url https://example.com --output-dir audits/
-python -m design_assistant screenshot ./design.png
+# Runs the full 6-step pipeline on https://example.com and prints detailed results
+python scripts/demo_real_url.py
 ```
 
 ---
 
-## 🧩 Project Structure
+## Running Experiments (ICoRD'27 Paper)
+
+The experiment suite validates all claims made in the paper. Benchmark experiments run on local HTML fixtures for reproducibility. Real-world and LLM experiments require internet access and (optionally) a Gemini API key.
+
+### Run all benchmark experiments (no internet needed)
+```bash
+python scripts/run_experiments.py --output-dir experiments/
+```
+
+### Run individual benchmark experiments
+```bash
+python scripts/run_experiments.py --experiment agentic       # Exp1: Agentic vs Static
+python scripts/run_experiments.py --experiment sensitivity    # Exp2: DFS Weight Sensitivity
+python scripts/run_experiments.py --experiment contrast       # Exp3: Contrast Methods
+python scripts/run_experiments.py --experiment darkpattern    # Exp4: Dark Pattern Accuracy
+python scripts/run_experiments.py --experiment ablation       # Exp5: Component Ablation
+python scripts/run_experiments.py --experiment remediation    # Exp7: Remediation Quality
+```
+
+### Run inter-pillar correlation analysis (Exp 6)
+```bash
+python scripts/generate_paper_figures.py
+```
+This generates the correlation matrix and 5 publication-quality figures in `figures/`.
+
+### Run real-world validation on 5 production sites
+```bash
+python scripts/exp_realworld_validation.py
+```
+Audits: example.com, wikipedia.org, w3.org/WAI, iitk.ac.in, python.org
+
+### Run LLM vs heuristic dark-pattern comparison
+```bash
+# Requires GOOGLE_API_KEY environment variable
+$env:GOOGLE_API_KEY="your-key"                    # Windows PowerShell
+python scripts/exp_llm_comparison.py
+```
+
+### Experiment Results Summary
+
+| # | Experiment | Data Points | Key Finding |
+|---|-----------|------------|-------------|
+| 1 | Agentic vs Static | 4 pages | Agentic found **25–44% additional issues** beyond static tools |
+| 2 | DFS Sensitivity | 45 configs | Score spread up to **0.315** across weight configs |
+| 3 | Contrast Methods | 4 pages | KMeans-CIELAB: **24 violations** vs Laplacian: **0** |
+| 4 | Dark Pattern Accuracy | 4 pages | **100% precision**, **98.6% text recall** |
+| 5 | Component Ablation | 32 configs | All 3 DFS tiers contribute non-redundant signal |
+| 6 | Inter-Pillar Correlation | 315 points | All \|r\| ≤ 0.48 — tiers measure distinct quality dimensions |
+| 7 | Remediation Quality | 4 pages | **92.2% fix coverage**, avg DFS improvement **+0.475** |
+| 8 | LLM vs Heuristic | 4 pages | LLM suppresses **44% false positives**, confirms **93% genuine** dark patterns |
+
+### Real-World Validation Results
+
+| Site | DFS | Technical | Ethical | Issues | Agentic Issues |
+|------|-----|-----------|---------|--------|----------------|
+| example.com | 0.673 | 0.933 | 1.000 | 7 | 3 |
+| wikipedia.org | 0.598 | 0.733 | 1.000 | 10 | 7 |
+| w3.org/WAI | 0.687 | 0.967 | 1.000 | 8 | 2 |
+| iitk.ac.in | 0.593 | 0.733 | 1.000 | 13 | 7 |
+| python.org | 0.624 | 0.850 | 0.938 | 9 | 5 |
+| **Mean** | **0.635** | 0.843 | 0.988 | 9.4 | **4.8** |
+
+Results are saved as CSV files in the `experiments/` directory.
+
+---
+
+## Generated Figures
+
+The `scripts/generate_paper_figures.py` script generates publication-quality figures in `figures/`:
+
+| Figure | File | Description |
+|--------|------|-------------|
+| DFS Radar Chart | `radar_dfs_breakdown.pdf` | Component scores per benchmark page |
+| Sensitivity Heatmap | `heatmap_dfs_sensitivity.pdf` | DFS across α×β weight space for 3 site profiles |
+| Agentic vs Static | `bar_agentic_vs_static.pdf` | Stacked bar showing agentic contribution |
+| Correlation Matrix | `correlation_matrix.pdf` | Inter-pillar Pearson correlation (proves non-redundancy) |
+| Remediation Impact | `bar_remediation_impact.pdf` | Current vs predicted post-fix DFS |
+
+---
+
+## Running Tests
+```bash
+# Run all 16 unit tests
+python -m pytest tests/ -v
+
+# Run specific test files
+python -m pytest tests/test_fusion.py -v        # DFS hierarchical scoring
+python -m pytest tests/test_contrast.py -v      # Contrast auditor (both methods)
+python -m pytest tests/test_remediation.py -v   # Remediation engine
+```
+
+---
+
+## Project Structure
 
 ```
 des646-project/
+├── app.py                              # Streamlit dashboard entry point
+├── paper.tex                           # ICoRD'27 research paper (LaTeX, Springer LNCS)
+├── requirements.txt                    # Python dependencies
+├── .env                                # Environment variables (API keys)
 │
-├── app.py                          # Streamlit app entry point
-├── design_assistant/
-│   ├── pipeline.py                 # Core orchestration logic
-│   ├── fusion.py                   # Score computation logic
-│   ├── reporting.py                # JSON / MD / PDF writers
-│   ├── llm_integration.py          # Gemini model integration
-│   ├── audits/
-│   │   ├── accessibility.py        # axe-core wrapper
-│   │   ├── contrast.py             # OpenCV contrast analysis
-│   │   ├── dark_patterns.py        # NLP-based dark pattern detection
-│   ├── collectors/
-│   │   ├── selenium_collector.py   # DOM + Screenshot from URLs
-│   │   ├── screenshot_loader.py    # Local image ingestion
-│   └── ...
-├── outputs/                        # Generated reports and JSONs
+├── design_assistant/                   # Core framework package
+│   ├── __init__.py
+│   ├── __main__.py                     # CLI entry point
+│   ├── pipeline.py                     # Orchestration: collect → audit → fuse → remediate → report
+│   ├── fusion.py                       # Hierarchical DFS (3-tier + gating)
+│   ├── remediation.py                  # Predictive remediation (LLM + rule-based fallback)
+│   ├── reporting.py                    # PDF / Markdown / JSON report writers
+│   ├── llm_integration.py             # Google Gemini multimodal integration
+│   │
+│   ├── audits/                         # Four audit modules
+│   │   ├── accessibility.py           # axe-core WCAG 2.1 wrapper
+│   │   ├── contrast.py                # Laplacian + KMeans-CIELAB contrast analysis
+│   │   ├── dark_patterns.py           # 7-category dark pattern detector (79 keywords)
+│   │   └── agentic.py                 # Keyboard + screen-reader simulation (685 lines)
+│   │
+│   └── collectors/                     # Data collection
+│       ├── selenium_collector.py      # Selenium URL crawler (DOM + screenshot + axe)
+│       └── screenshot_loader.py       # Local image loader
+│
 ├── scripts/
-│   └── fine_tune_dark_patterns.py  # Model fine-tuning utility
-└── requirements.txt
+│   ├── run_experiments.py             # 6-experiment ICoRD evaluation suite
+│   ├── generate_paper_figures.py      # Generate 5 publication-quality figures
+│   ├── exp_realworld_validation.py    # Real-world validation on 5 production sites
+│   ├── exp_llm_comparison.py          # LLM vs heuristic dark-pattern comparison
+│   ├── demo_real_url.py              # End-to-end demo on a real URL
+│   └── check_latex.py                # LaTeX environment balance checker
+│
+├── tests/
+│   ├── fixtures/                      # 4 benchmark HTML pages
+│   │   ├── good_page.html            # WCAG-compliant reference
+│   │   ├── mixed_page.html           # Partially compliant
+│   │   ├── bad_page.html             # 20+ deliberate violations
+│   │   └── dark_pattern_heavy.html   # All 7 Mathur categories
+│   ├── test_contrast.py              # 5 tests (Laplacian + KMeans)
+│   ├── test_fusion.py                # 7 tests (DFS hierarchy + gating)
+│   └── test_remediation.py           # 4 tests (rules + serialization)
+│
+├── figures/                           # Generated publication figures (PDF + PNG)
+│   ├── radar_dfs_breakdown.pdf
+│   ├── heatmap_dfs_sensitivity.pdf
+│   ├── bar_agentic_vs_static.pdf
+│   ├── correlation_matrix.pdf
+│   └── bar_remediation_impact.pdf
+│
+└── experiments/                       # Generated experiment results (CSV + JSON)
+    ├── exp1/ ... exp6/               # Benchmark experiment results
+    ├── exp_realworld/                # Real-world validation (5 sites)
+    ├── exp_llm/                      # LLM comparison results
+    └── demo_real_url/
 ```
 
 ---
 
-## 🧪 Fine-Tuning the Dark Pattern Model
+## Quick Start: Reproduce All Paper Results
 
-You can fine-tune your own Transformer-based model for dark pattern classification:
+Run these commands in order to reproduce every experiment and figure in the paper:
 
 ```bash
-python scripts/fine_tune_dark_patterns.py   /path/to/train.csv   /path/to/val.csv   --model "distilbert-base-uncased"   --output-dir "custom-dark-pattern-model"
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Run all 6 benchmark experiments (Exp 1-5, 7)
+python scripts/run_experiments.py --output-dir experiments/
+
+# 3. Generate figures and run correlation analysis (Exp 6)
+python scripts/generate_paper_figures.py
+
+# 4. Run real-world validation on 5 production sites
+python scripts/exp_realworld_validation.py
+
+# 5. (Optional) Run LLM comparison — requires Gemini API key
+$env:GOOGLE_API_KEY="your-key"
+python scripts/exp_llm_comparison.py
+
+# 6. (Optional) Launch the Streamlit dashboard
+streamlit run app.py
 ```
 
-The CSVs must include:
-- `text` — UI text content
-- `label` — dark pattern category (e.g., *Urgency*, *Confirm-shaming*)
+---
 
-Once trained, you can plug the model into the pipeline via the `DarkPatternAuditor`.
+## Technology Stack
+
+| Layer | Tools & Libraries |
+|-------|-------------------|
+| **Dashboard** | Streamlit 1.56, Plotly 6.x |
+| **Web Auditing** | Selenium 4.x, axe-selenium-python, ChromeDriver |
+| **Computer Vision** | OpenCV (KMeans-CIELAB segmentation), NumPy |
+| **NLP / Heuristics** | Keyword matching (79 terms), HuggingFace Transformers (optional) |
+| **AI Integration** | Google Gemini API (optional, rule-based fallbacks for all modules) |
+| **Reporting** | ReportLab (PDF), Matplotlib (charts), Markdown, JSON |
+| **Testing** | pytest 9.x |
+| **Language** | Python 3.10+ |
 
 ---
 
-## ⚙️ Configuration Options
+## Team
 
-| Config Area | Description |
-|--------------|--------------|
-| **Environment Variables** | API keys, service credentials, etc. |
-| **Audit Thresholds** | WCAG contrast ratios, dark-pattern confidence cutoffs |
-| **Weight Parameters** | α (Accessibility) and β (Ethical UX) coefficients |
-| **Reports** | Output format and save directory |
-| **Session Persistence** | Enables saving historical audits to local storage |
+Venkatesh Akula (220109), Venkata Sritan (220280), Sai Nikhil (221095), Tejasri Saladi (220941), Nayan Verma (220703)
 
----
-
-## 🤝 Contributing
-
-We welcome contributions to improve this tool!  
-To contribute:
-
-1. Fork this repository  
-2. Create a new feature branch  
-3. Commit your changes with clear messages  
-4. Submit a Pull Request to `main`
-
-**Guidelines:**
-- Follow existing code style  
-- Add comments for complex logic  
-- Test thoroughly before submitting  
-
----
-
-## 📚 Acknowledgments
-
-- [Streamlit](https://streamlit.io/) – Web framework  
-- [axe-core](https://www.deque.com/axe/) – Accessibility engine  
-- [Plotly](https://plotly.com/) – Data visualization  
-- [Google Gemini](https://aistudio.google.com/) – Multimodal AI model  
-- [Hugging Face Transformers](https://huggingface.co/) – NLP models  
-- [OpenCV](https://opencv.org/) – Image processing  
-- [ReportLab](https://www.reportlab.com/) – PDF generation  
-
----
-
-## 📈 Future Work & TRL Roadmap
-
-Our current implementation demonstrates a **functional prototype (TRL-4)**, validated as a proof of concept through live audits and reporting.  
-To progress to **TRL-5**, we aim for systematic validation in simulated environments and acceptance testing.  
-Further progress to **TRL-6+** will involve extended trials, deployment in production environments, and collaboration with UX and accessibility experts for real-world validation.
+**Indian Institute of Technology Kanpur** — DES646: AI in Design, 2024–25

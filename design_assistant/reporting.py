@@ -36,7 +36,7 @@ class JSONReportWriter:
 
 @dataclass
 class MarkdownReportWriter:
-    """Writes a comprehensive LLM-powered markdown report."""
+    """Writes a detailed markdown report."""
     
     llm_config: Optional[object] = None
 
@@ -50,9 +50,9 @@ class MarkdownReportWriter:
 
 @dataclass
 class PDFReportWriter:
-    """Writes a comprehensive PDF report using the LLM generator."""
+    """Writes a detailed PDF report."""
 
-    title: str = "Comprehensive Design Fairness Audit Report"
+    title: str = "Design Fairness Audit Report"
     llm_config: Optional[object] = None
     _image_pattern = re.compile(r"!\[(?P<alt>.*?)\]\((?P<src>.*?)\)")
 
@@ -62,7 +62,7 @@ class PDFReportWriter:
 
         path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Generate comprehensive markdown report first
+        # Generate markdown report first
         generator = LLMReportGenerator(llm_config=self.llm_config)
         markdown_content = generator.generate_comprehensive_report(result)
         
@@ -314,7 +314,7 @@ class PDFReportWriter:
             elements.extend(self._create_image_flowables(image_path, doc.width, image_path.stem.replace('_', ' ').title(), styles))
     
     def _write_simple_summary(self, result: "PipelineResult", path: Path) -> Path:
-        """Fallback simple summary if comprehensive PDF fails."""
+        """Fallback simple summary if PDF generation fails."""
         doc = SimpleDocTemplate(str(path), pagesize=A4)
         styles = getSampleStyleSheet()
         elements = [Paragraph(self.title, styles["Title"]), Spacer(1, 12)]

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Get Premium Access</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <style>
+        body { font-family: Arial; margin: 0; background: #111; color: #e0e0e0; }
+        .popup { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .popup-content { background: #1e1e1e; padding: 40px; border-radius: 12px; max-width: 500px; text-align: center; }
+        .popup-content h2 { color: #ff4444; }
+        .cta-big { background: #ff4444; color: white; border: none; padding: 16px 40px; font-size: 20px; border-radius: 8px; cursor: pointer; display: block; width: 100%; margin: 16px 0; }
+        .dismiss { color: #555; font-size: 10px; text-decoration: none; }
+        .countdown { font-size: 36px; color: #ff4444; font-weight: bold; }
+        .social-proof { color: #888; font-size: 13px; }
+        .fine-print { color: #333; font-size: 8px; line-height: 1.1; margin-top: 20px; }
+        .hidden-cost { display: none; }
+        main { padding: 40px; max-width: 700px; margin: auto; }
+        .step { border: 1px solid #333; padding: 20px; margin: 16px 0; border-radius: 8px; }
+        input { width: 100%; padding: 10px; margin: 8px 0; background: #222; border: 1px solid #444; color: #eee; border-radius: 4px; }
+        .precheck { margin: 12px 0; }
+    </style>
+</head>
+<body>
+    <!-- Dark pattern-heavy onboarding flow -->
+
+    <!-- Popup with urgency + confirm-shaming -->
+    <div class="popup" role="dialog" aria-modal="true">
+        <div class="popup-content">
+            <h2>🔥 LAST CHANCE!</h2>
+            <p class="countdown">04:59</p>
+            <p>This exclusive offer expires soon! Don't wait — limited time only!</p>
+            <p class="social-proof">🛒 2,847 people are viewing this right now. 312 just purchased!</p>
+            <button class="cta-big">YES! I want to save 70%!</button>
+            <a href="#" class="dismiss">No thanks, I don't like saving money</a>
+            <p class="fine-print">
+                * Subscription auto-renews at $49.99/month after 7-day trial.
+                Additional processing fee of $2.99. Cancel by calling 1-800-555-0199 only.
+                No online cancellation available. Cancellation fee of $25 applies.
+            </p>
+        </div>
+    </div>
+
+    <main>
+        <h2>Create Your Account</h2>
+        <p>Sign up to continue browsing. Login required to view any content.</p>
+
+        <div class="step">
+            <h3>Step 1: Your Information</h3>
+            <input type="text" placeholder="Full name">
+            <input type="email" placeholder="Email address">
+            <input type="password" placeholder="Create password">
+            <input type="text" placeholder="Phone number (required)">
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Preferences</h3>
+            <div class="precheck">
+                <input type="checkbox" id="newsletter" checked>
+                <label for="newsletter">Send me daily promotional emails (recommended)</label>
+            </div>
+            <div class="precheck">
+                <input type="checkbox" id="share" checked>
+                <label for="share">Share my data with trusted partners (selected for you)</label>
+            </div>
+            <div class="precheck">
+                <input type="checkbox" id="premium" checked>
+                <label for="premium">Subscribe to Premium — preselected, best value!</label>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Payment</h3>
+            <input type="text" placeholder="Card number">
+            <input type="text" placeholder="Expiry MM/YY">
+            <p class="fine-print">
+                By proceeding you agree to all terms and conditions.
+                Recurring charge of $49.99/month. Processing fee added to cart.
+                Bait and switch terms may apply.
+            </p>
+        </div>
+
+        <button class="cta-big">Accept All & Continue</button>
+        <p class="dismiss">Having trouble? Email us to unsubscribe from your mandatory subscription.</p>
+
+        <p class="social-proof">Trusted by millions. People are viewing this page right now.</p>
+    </main>
+</body>
+</html>

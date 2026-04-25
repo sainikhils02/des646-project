@@ -1,0 +1,5 @@
+page,gt_categories,gt_patterns_total,detected_flags,detected_categories,category_precision,category_recall,text_recall,ethical_score,categories_found
+bad_page,5,10,9,5,1.0,1.0,1.0,0.3571,"Confirm-shaming, Misdirection, Sneaking, Social Proof, Urgency"
+good_page,0,0,0,0,0.0,1.0,1.0,1.0,
+mixed_page,1,1,0,0,0.0,0.0,1.0,1.0,
+dark_pattern_heavy,7,18,15,6,1.0,0.857,0.944,0.1667,"Forced Action, Misdirection, Obstruction, Sneaking, Social Proof, Urgency"

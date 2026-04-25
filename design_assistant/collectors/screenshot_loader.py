@@ -1,4 +1,3 @@
-"""Utilities for loading screenshots from disk into OpenCV-friendly arrays."""
 from __future__ import annotations
 
 import base64

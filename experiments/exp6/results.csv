@@ -1,0 +1,5 @@
+page,total_issues,suggestions_generated,coverage_pct,high_priority,medium_priority,low_priority,predicted_dfs_delta,current_dfs,predicted_post_fix_dfs,categories_covered,generation_time_ms
+bad_page,20,15,75.0,9,6,0,0.66,0.3338,0.9938,"contrast, dark_pattern, keyboard, screen_reader",0.1
+good_page,5,5,100.0,0,5,0,0.25,0.7,0.95,contrast,0.1
+mixed_page,8,8,100.0,1,7,0,0.35,0.6667,1.0167,"contrast, functional, keyboard, screen_reader",0.1
+dark_pattern_heavy,16,15,93.8,8,7,0,0.64,0.37,1.01,"contrast, dark_pattern, functional, keyboard, screen_reader",0.1

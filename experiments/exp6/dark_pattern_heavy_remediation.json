@@ -1,0 +1,232 @@
+{
+  "summary": "Generated 15 remediation suggestions for 16 detected issues.",
+  "total_predicted_dfs_delta": 0.64,
+  "suggestion_count": 15,
+  "suggestions": [
+    {
+      "issue_id": "contrast_0",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 1.24:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 1.24:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_1",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 1.24:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 1.24:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_2",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 1.24:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 1.24:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "dark_pattern_3",
+      "issue_category": "dark_pattern",
+      "issue_description": "Dark pattern (Urgency): 04:59\n\nThis exclusive offer expires soon!",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Dark pattern (Urgency): 04:59\n\nThis exclusive offer expires soon!",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.0,
+        "ethical": 0.05
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "dark_pattern_4",
+      "issue_category": "dark_pattern",
+      "issue_description": "Dark pattern (Urgency): Don't wait \u2014 limited time only!",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Dark pattern (Urgency): Don't wait \u2014 limited time only!",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.0,
+        "ethical": 0.05
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "dark_pattern_5",
+      "issue_category": "dark_pattern",
+      "issue_description": "Dark pattern (Social Proof): \ud83d\uded2 2,847 people are viewing this right now.",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Dark pattern (Social Proof): \ud83d\uded2 2,847 people are viewing this right now.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.0,
+        "ethical": 0.05
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "dark_pattern_6",
+      "issue_category": "dark_pattern",
+      "issue_description": "Dark pattern (Sneaking): No thanks, I don't like saving money\n\n* Subscription auto-renews at $49.99/month",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Dark pattern (Sneaking): No thanks, I don't like saving money\n\n* Subscription auto-renews at $49.99/month",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.0,
+        "ethical": 0.05
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "dark_pattern_7",
+      "issue_category": "dark_pattern",
+      "issue_description": "Dark pattern (Sneaking): Additional processing fee of $2.99.",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Dark pattern (Sneaking): Additional processing fee of $2.99.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.0,
+        "ethical": 0.05
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "keyboard_8",
+      "issue_category": "keyboard",
+      "issue_description": "No skip-navigation link found. Keyboard users must tab through all navigation items to reach main content.",
+      "original_html": "<body>...",
+      "fixed_html": "<body>\n  <a href=\"#main-content\" class=\"skip-link\">Skip to main content</a>\n  ...\n  <main id=\"main-content\">",
+      "explanation": "Add a skip-navigation link so keyboard users can bypass repetitive navigation.",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.03,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "keyboard_9",
+      "issue_category": "keyboard",
+      "issue_description": "Only 3/12 interactive elements are reachable via Tab key. 9 elements may be keyboard-inaccessible.",
+      "original_html": null,
+      "fixed_html": "Fix: Ensure all interactive elements are focusable. Use native HTML elements (button, a) or add tabindex='0' and keyboard event handlers.",
+      "explanation": "Only 3/12 interactive elements are reachable via Tab key. 9 elements may be keyboard-inaccessible.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.03,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "screen_reader_10",
+      "issue_category": "screen_reader",
+      "issue_description": "No <h1> heading found. Screen readers rely on headings to convey page structure.",
+      "original_html": null,
+      "fixed_html": "Fix: Add a single <h1> element describing the main page purpose.",
+      "explanation": "No <h1> heading found. Screen readers rely on headings to convey page structure.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.04,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "screen_reader_11",
+      "issue_category": "screen_reader",
+      "issue_description": "No <nav> landmark found. Navigation regions should be identified for assistive technology.",
+      "original_html": null,
+      "fixed_html": "Fix: Wrap navigation links in a <nav> element with aria-label if multiple navs exist.",
+      "explanation": "No <nav> landmark found. Navigation regions should be identified for assistive technology.",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.04,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "screen_reader_12",
+      "issue_category": "screen_reader",
+      "issue_description": "6 form input(s) have no associated label.",
+      "original_html": "<input type=\"text\" id=\"email\">",
+      "fixed_html": "<label for=\"email\">Email</label>\n<input type=\"text\" id=\"email\">",
+      "explanation": "Associate a <label> with the input using the for/id pattern.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.04,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "functional_13",
+      "issue_category": "functional",
+      "issue_description": "Page uses animations but does not respect prefers-reduced-motion media query.",
+      "original_html": null,
+      "fixed_html": "Fix: Add @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }",
+      "explanation": "Page uses animations but does not respect prefers-reduced-motion media query.",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.02,
+        "perceptual": 0.01,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "functional_14",
+      "issue_category": "functional",
+      "issue_description": "Page does not declare a language. Screen readers need lang attribute to determine pronunciation.",
+      "original_html": "<html>",
+      "fixed_html": "<html lang=\"en\">",
+      "explanation": "Declare the page language so screen readers use correct pronunciation.",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.02,
+        "perceptual": 0.01,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    }
+  ]
+}

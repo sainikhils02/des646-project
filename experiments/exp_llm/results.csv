@@ -1,0 +1,5 @@
+page,heuristic_flags,heuristic_score,llm_confirmed,llm_suppressed,llm_score,false_positive_rate
+Good Page,0,1.0,0,0,1.0,0.0
+Mixed Page,0,1.0,0,0,1.0,0.0
+Bad Page,9,0.3571428571428571,5,4,0.4444,0.444
+Dark-Heavy Page,15,0.16666666666666663,14,1,0.0667,0.067

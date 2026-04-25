@@ -1,0 +1,224 @@
+{
+  "url": "https://example.com",
+  "dfs": {
+    "value": 0.6733333333333333,
+    "technical": {
+      "name": "Technical Accessibility",
+      "value": 0.9333333333333333,
+      "weight": 0.4,
+      "sub_scores": {
+        "keyboard_navigation": 1.0,
+        "screen_reader": 0.8666666666666667
+      }
+    },
+    "perceptual": {
+      "name": "Perceptual Quality",
+      "value": 0.0,
+      "weight": 0.3,
+      "sub_scores": {
+        "contrast": 0.0
+      }
+    },
+    "ethical": {
+      "name": "Ethical Design",
+      "value": 1.0,
+      "weight": 0.3,
+      "sub_scores": {
+        "dark_patterns": 1.0
+      }
+    },
+    "gate_threshold": 0.3,
+    "accessibility_score": null,
+    "ethical_ux_score": 1.0,
+    "alpha": 0.4,
+    "beta": 0.3
+  },
+  "contrast": {
+    "violations": 6,
+    "score": 0.0
+  },
+  "dark_patterns": {
+    "flags": 0,
+    "score": 1.0
+  },
+  "agentic": {
+    "keyboard_score": 1.0,
+    "screen_reader_score": 0.8666666666666667,
+    "combined_score": 0.9333333333333333,
+    "total_issues": 3,
+    "keyboard_issues": [],
+    "screen_reader_issues": [
+      {
+        "category": "screen_reader",
+        "severity": "serious",
+        "description": "No <main> landmark found. Screen reader users cannot quickly navigate to primary content.",
+        "element_info": null,
+        "wcag_criterion": "1.3.1 Info and Relationships",
+        "recommendation": "Wrap the primary content area in a <main> element."
+      },
+      {
+        "category": "screen_reader",
+        "severity": "moderate",
+        "description": "No <nav> landmark found. Navigation regions should be identified for assistive technology.",
+        "element_info": null,
+        "wcag_criterion": "1.3.1 Info and Relationships",
+        "recommendation": "Wrap navigation links in a <nav> element with aria-label if multiple navs exist."
+      }
+    ],
+    "functional_issues": [
+      {
+        "category": "functional",
+        "severity": "moderate",
+        "description": "Page uses animations but does not respect prefers-reduced-motion media query.",
+        "element_info": null,
+        "wcag_criterion": "2.3.3 Animation from Interactions",
+        "recommendation": "Add @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }"
+      }
+    ],
+    "tab_order_length": 1,
+    "aria_tree_summary": {
+      "landmarks_count": 0,
+      "headings_count": 1,
+      "images_without_alt": 0,
+      "buttons_without_name": 0,
+      "links_without_name": 0,
+      "inputs_without_label": 0,
+      "aria_live_regions": 0,
+      "aria_hidden_focusable": 0,
+      "accessible_name_coverage": "1/1"
+    }
+  },
+  "remediation": {
+    "summary": "Generated 8 remediation suggestions for 8 detected issues.",
+    "total_predicted_dfs_delta": 0.36,
+    "suggestion_count": 8,
+    "suggestions": [
+      {
+        "issue_id": "contrast_0",
+        "issue_category": "contrast",
+        "issue_description": "Low contrast between colour clusters: 2.27:1 (WCAG AA requires 4.5:1)",
+        "original_html": "N/A",
+        "fixed_html": "Fix: Review and address this issue.",
+        "explanation": "Low contrast between colour clusters: 2.27:1 (WCAG AA requires 4.5:1)",
+        "priority": "medium",
+        "predicted_impact": {
+          "technical": 0.0,
+          "perceptual": 0.05,
+          "ethical": 0.0
+        },
+        "trade_off_note": null
+      },
+      {
+        "issue_id": "contrast_1",
+        "issue_category": "contrast",
+        "issue_description": "Low contrast between colour clusters: 2.27:1 (WCAG AA requires 4.5:1)",
+        "original_html": "N/A",
+        "fixed_html": "Fix: Review and address this issue.",
+        "explanation": "Low contrast between colour clusters: 2.27:1 (WCAG AA requires 4.5:1)",
+        "priority": "medium",
+        "predicted_impact": {
+          "technical": 0.0,
+          "perceptual": 0.05,
+          "ethical": 0.0
+        },
+        "trade_off_note": null
+      },
+      {
+        "issue_id": "contrast_2",
+        "issue_category": "contrast",
+        "issue_description": "Low contrast between colour clusters: 2.27:1 (WCAG AA requires 4.5:1)",
+        "original_html": "N/A",
+        "fixed_html": "Fix: Review and address this issue.",
+        "explanation": "Low contrast between colour clusters: 2.27:1 (WCAG AA requires 4.5:1)",
+        "priority": "medium",
+        "predicted_impact": {
+          "technical": 0.0,
+          "perceptual": 0.05,
+          "ethical": 0.0
+        },
+        "trade_off_note": null
+      },
+      {
+        "issue_id": "contrast_3",
+        "issue_category": "contrast",
+        "issue_description": "Low contrast between colour clusters: 2.95:1 (WCAG AA requires 4.5:1)",
+        "original_html": "N/A",
+        "fixed_html": "Fix: Review and address this issue.",
+        "explanation": "Low contrast between colour clusters: 2.95:1 (WCAG AA requires 4.5:1)",
+        "priority": "medium",
+        "predicted_impact": {
+          "technical": 0.0,
+          "perceptual": 0.05,
+          "ethical": 0.0
+        },
+        "trade_off_note": null
+      },
+      {
+        "issue_id": "contrast_4",
+        "issue_category": "contrast",
+        "issue_description": "Low contrast between colour clusters: 2.95:1 (WCAG AA requires 4.5:1)",
+        "original_html": "N/A",
+        "fixed_html": "Fix: Review and address this issue.",
+        "explanation": "Low contrast between colour clusters: 2.95:1 (WCAG AA requires 4.5:1)",
+        "priority": "medium",
+        "predicted_impact": {
+          "technical": 0.0,
+          "perceptual": 0.05,
+          "ethical": 0.0
+        },
+        "trade_off_note": null
+      },
+      {
+        "issue_id": "screen_reader_5",
+        "issue_category": "screen_reader",
+        "issue_description": "No <main> landmark found. Screen reader users cannot quickly navigate to primary content.",
+        "original_html": null,
+        "fixed_html": "Fix: Wrap the primary content area in a <main> element.",
+        "explanation": "No <main> landmark found. Screen reader users cannot quickly navigate to primary content.",
+        "priority": "high",
+        "predicted_impact": {
+          "technical": 0.04,
+          "perceptual": 0.0,
+          "ethical": 0.0
+        },
+        "trade_off_note": null
+      },
+      {
+        "issue_id": "screen_reader_6",
+        "issue_category": "screen_reader",
+        "issue_description": "No <nav> landmark found. Navigation regions should be identified for assistive technology.",
+        "original_html": null,
+        "fixed_html": "Fix: Wrap navigation links in a <nav> element with aria-label if multiple navs exist.",
+        "explanation": "No <nav> landmark found. Navigation regions should be identified for assistive technology.",
+        "priority": "medium",
+        "predicted_impact": {
+          "technical": 0.04,
+          "perceptual": 0.0,
+          "ethical": 0.0
+        },
+        "trade_off_note": null
+      },
+      {
+        "issue_id": "functional_7",
+        "issue_category": "functional",
+        "issue_description": "Page uses animations but does not respect prefers-reduced-motion media query.",
+        "original_html": null,
+        "fixed_html": "Fix: Add @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }",
+        "explanation": "Page uses animations but does not respect prefers-reduced-motion media query.",
+        "priority": "medium",
+        "predicted_impact": {
+          "technical": 0.02,
+          "perceptual": 0.01,
+          "ethical": 0.0
+        },
+        "trade_off_note": null
+      }
+    ]
+  },
+  "timing": {
+    "collection_s": 3.12,
+    "contrast_ms": 171.6,
+    "dark_pattern_ms": 0.1,
+    "agentic_ms": 1475.9
+  }
+}

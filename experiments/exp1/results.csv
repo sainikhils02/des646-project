@@ -1,0 +1,5 @@
+page,timestamp,contrast_violations,contrast_score,dark_pattern_flags,dark_pattern_score,static_issue_count,agentic_time_s,keyboard_issues,screen_reader_issues,functional_issues,keyboard_score,screen_reader_score,tab_order_length,agentic_only_issues,total_issues,agentic_pct,dfs_static,dfs_full,dfs_delta
+bad_page,2026-04-04T01:23:54.183046,9,0,9,0.3571,18,2.93,4,7,3,0.6,0.5333,12,14,32,43.8,0.0,0.3338,0.3338
+good_page,2026-04-04T01:24:00.087606,6,0,0,1.0,6,3.04,0,0,0,1.0,1.0,14,0,6,0.0,0.0,0.7,0.7
+mixed_page,2026-04-04T01:24:05.730874,6,0,0,1.0,6,2.22,1,1,1,0.9,0.9333,8,3,9,33.3,0.0,0.6667,0.6667
+dark_pattern_heavy,2026-04-04T01:24:10.655275,3,0,15,0.1667,18,1.49,2,3,3,0.8,0.8,3,8,26,30.8,0.0,0.37,0.37

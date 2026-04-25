@@ -1,0 +1,82 @@
+{
+  "summary": "Generated 5 remediation suggestions for 5 detected issues.",
+  "total_predicted_dfs_delta": 0.25,
+  "suggestion_count": 5,
+  "suggestions": [
+    {
+      "issue_id": "contrast_0",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 2.96:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 2.96:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_1",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 2.96:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 2.96:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_2",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 2.96:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 2.96:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_3",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 3.21:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 3.21:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_4",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 3.21:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 3.21:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    }
+  ]
+}

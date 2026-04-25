@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f0f0f0; }
+        .hero-text { color: #c0c0c0; background: #d5d5d5; padding: 30px; font-size: 18px; }
+        .small-text { color: #999; font-size: 11px; }
+        nav a { margin: 0 10px; }
+        button { outline: none; padding: 8px 16px; cursor: pointer; }
+        button:focus { outline: none; }
+        .hidden-nav { display: block; position: absolute; left: -9999px; width: 100px; height: 30px; }
+        .modal-overlay { display: block; }
+        .icon-btn svg { width: 20px; height: 20px; }
+        .urgency { color: red; font-weight: bold; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .shame-link { color: #999; font-size: 10px; text-decoration: underline; }
+        .preselected { background: #4CAF50; color: white; padding: 5px 10px; }
+        .fine-print { font-size: 8px; color: #aaa; }
+    </style>
+</head>
+<body>
+    <!-- NO skip link -->
+    <!-- NO <main> landmark -->
+    <!-- NO lang attribute on html -->
+
+    <nav>
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#products">Products</a>
+        <a href="#contact">Contact</a>
+    </nav>
+
+    <div class="hero-text">
+        <h3>Special Offers Today</h3>
+        <p>Browse our exclusive collection of premium products at unbeatable prices.</p>
+    </div>
+
+    <!-- Images without alt text -->
+    <img src="product1.jpg" width="200" height="150">
+    <img src="product2.jpg" width="200" height="150">
+    <img src="banner.jpg" width="600" height="100">
+
+    <!-- Buttons without accessible names -->
+    <button class="icon-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></button>
+    <button class="icon-btn"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"/></svg></button>
+
+    <!-- Form inputs without labels -->
+    <div>
+        <input type="text" placeholder="Enter your email">
+        <input type="password" placeholder="Password">
+        <input type="text" name="phone">
+        <select>
+            <option>Select country</option>
+            <option>India</option>
+            <option>USA</option>
+        </select>
+    </div>
+
+    <!-- Urgency dark patterns -->
+    <p class="urgency">⚡ HURRY! Only 2 items left in stock! Offer expires soon!</p>
+    <p class="urgency">🔥 Limited time deal — Act now before it's gone!</p>
+    <p>Other users are viewing this product right now. Don't miss out!</p>
+
+    <!-- Confirm-shaming -->
+    <div>
+        <button class="preselected">Yes, I want to save money!</button>
+        <a href="#" class="shame-link">No thanks, I prefer to pay full price</a>
+    </div>
+
+    <!-- Sneaking patterns -->
+    <div class="fine-print">
+        * Additional processing fee of $4.99 applies. Auto-renewal at $29.99/month.
+        Terms and conditions apply. Hidden costs may vary.
+    </div>
+
+    <!-- Misdirection -->
+    <div>
+        <input type="checkbox" checked> <span class="preselected">Recommended: Premium Plan (preselected for you)</span>
+    </div>
+
+    <!-- Social proof -->
+    <p>🛒 47 people just purchased this item! Trending now — trusted by millions.</p>
+
+    <!-- Hidden focusable element inside aria-hidden -->
+    <div aria-hidden="true">
+        <button>Hidden but focusable</button>
+        <a href="#">Hidden link</a>
+    </div>
+
+    <!-- Off-screen focusable element -->
+    <a href="#secret" class="hidden-nav">Secret Link</a>
+
+    <!-- Heading hierarchy skip: h1 missing, jumps from h3 to h5 -->
+    <h5>Product Details</h5>
+    <p>Some product information here.</p>
+
+    <h3>Customer Reviews</h3>
+    <p>Verified reviews from our happy customers.</p>
+
+    <!-- Auto-play video -->
+    <video autoplay src="promo.mp4" width="320" height="240"></video>
+
+    <footer>
+        <p class="small-text">© 2024 TestShop Inc. All rights reserved.</p>
+    </footer>
+</body>
+</html>

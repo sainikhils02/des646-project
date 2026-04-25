@@ -1,0 +1,88 @@
+{
+  "keyboard_score": 0.8,
+  "screen_reader_score": 0.8,
+  "combined_score": 0.8,
+  "total_issues": 8,
+  "keyboard_issues": [
+    {
+      "category": "keyboard",
+      "severity": "moderate",
+      "description": "No skip-navigation link found. Keyboard users must tab through all navigation items to reach main content.",
+      "element_info": null,
+      "wcag_criterion": "2.4.1 Bypass Blocks",
+      "recommendation": "Add a visually-hidden skip link at the top of the page: <a href='#main-content' class='skip-link'>Skip to main content</a>"
+    },
+    {
+      "category": "keyboard",
+      "severity": "critical",
+      "description": "Only 3/12 interactive elements are reachable via Tab key. 9 elements may be keyboard-inaccessible.",
+      "element_info": null,
+      "wcag_criterion": "2.1.1 Keyboard",
+      "recommendation": "Ensure all interactive elements are focusable. Use native HTML elements (button, a) or add tabindex='0' and keyboard event handlers."
+    }
+  ],
+  "screen_reader_issues": [
+    {
+      "category": "screen_reader",
+      "severity": "serious",
+      "description": "No <h1> heading found. Screen readers rely on headings to convey page structure.",
+      "element_info": null,
+      "wcag_criterion": "1.3.1 Info and Relationships",
+      "recommendation": "Add a single <h1> element describing the main page purpose."
+    },
+    {
+      "category": "screen_reader",
+      "severity": "moderate",
+      "description": "No <nav> landmark found. Navigation regions should be identified for assistive technology.",
+      "element_info": null,
+      "wcag_criterion": "1.3.1 Info and Relationships",
+      "recommendation": "Wrap navigation links in a <nav> element with aria-label if multiple navs exist."
+    },
+    {
+      "category": "screen_reader",
+      "severity": "critical",
+      "description": "6 form input(s) have no associated label.",
+      "element_info": "input, input, input",
+      "wcag_criterion": "1.3.1 Info and Relationships",
+      "recommendation": "Associate each input with a <label for='id'> or use aria-label."
+    }
+  ],
+  "functional_issues": [
+    {
+      "category": "functional",
+      "severity": "moderate",
+      "description": "Page uses animations but does not respect prefers-reduced-motion media query.",
+      "element_info": null,
+      "wcag_criterion": "2.3.3 Animation from Interactions",
+      "recommendation": "Add @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }"
+    },
+    {
+      "category": "functional",
+      "severity": "serious",
+      "description": "Page does not declare a language. Screen readers need lang attribute to determine pronunciation.",
+      "element_info": null,
+      "wcag_criterion": "3.1.1 Language of Page",
+      "recommendation": "Add lang attribute to <html>: <html lang='en'>"
+    },
+    {
+      "category": "functional",
+      "severity": "critical",
+      "description": "Viewport meta tag disables user zooming. Users with low vision cannot enlarge content.",
+      "element_info": null,
+      "wcag_criterion": "1.4.4 Resize Text",
+      "recommendation": "Remove maximum-scale=1 and user-scalable=no from viewport meta tag."
+    }
+  ],
+  "tab_order_length": 3,
+  "aria_tree_summary": {
+    "landmarks_count": 1,
+    "headings_count": 5,
+    "images_without_alt": 0,
+    "buttons_without_name": 0,
+    "links_without_name": 0,
+    "inputs_without_label": 6,
+    "aria_live_regions": 0,
+    "aria_hidden_focusable": 0,
+    "accessible_name_coverage": "6/12"
+  }
+}

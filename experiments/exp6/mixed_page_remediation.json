@@ -1,0 +1,127 @@
+{
+  "summary": "Generated 8 remediation suggestions for 8 detected issues.",
+  "total_predicted_dfs_delta": 0.35,
+  "suggestion_count": 8,
+  "suggestions": [
+    {
+      "issue_id": "contrast_0",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 3.85:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 3.85:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_1",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 3.85:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 3.85:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_2",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 3.85:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 3.85:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_3",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 2.75:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 2.75:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_4",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 2.75:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 2.75:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "keyboard_5",
+      "issue_category": "keyboard",
+      "issue_description": "No skip-navigation link found. Keyboard users must tab through all navigation items to reach main content.",
+      "original_html": "<body>...",
+      "fixed_html": "<body>\n  <a href=\"#main-content\" class=\"skip-link\">Skip to main content</a>\n  ...\n  <main id=\"main-content\">",
+      "explanation": "Add a skip-navigation link so keyboard users can bypass repetitive navigation.",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.03,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "screen_reader_6",
+      "issue_category": "screen_reader",
+      "issue_description": "1 form input(s) have no associated label.",
+      "original_html": "<input type=\"text\" id=\"email\">",
+      "fixed_html": "<label for=\"email\">Email</label>\n<input type=\"text\" id=\"email\">",
+      "explanation": "Associate a <label> with the input using the for/id pattern.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.04,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "functional_7",
+      "issue_category": "functional",
+      "issue_description": "Page uses animations but does not respect prefers-reduced-motion media query.",
+      "original_html": null,
+      "fixed_html": "Fix: Add @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }",
+      "explanation": "Page uses animations but does not respect prefers-reduced-motion media query.",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.02,
+        "perceptual": 0.01,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    }
+  ]
+}

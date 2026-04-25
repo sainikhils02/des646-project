@@ -2,6 +2,7 @@ __pycache__/
 .des/
 outputs/
 *.pyc
+.env
 .ipynb_checkpoints/
 model/
 AI-Powered Design Assistant_ Technical Build Guide.pdf

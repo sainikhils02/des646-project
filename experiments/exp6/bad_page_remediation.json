@@ -1,0 +1,232 @@
+{
+  "summary": "Generated 15 remediation suggestions for 20 detected issues.",
+  "total_predicted_dfs_delta": 0.66,
+  "suggestion_count": 15,
+  "suggestions": [
+    {
+      "issue_id": "contrast_0",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 3.83:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 3.83:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_1",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 3.83:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 3.83:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_2",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 3.83:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 3.83:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_3",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 1.30:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 1.30:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "contrast_4",
+      "issue_category": "contrast",
+      "issue_description": "Low contrast between colour clusters: 1.30:1 (WCAG AA requires 4.5:1)",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Low contrast between colour clusters: 1.30:1 (WCAG AA requires 4.5:1)",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.05,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "dark_pattern_5",
+      "issue_category": "dark_pattern",
+      "issue_description": "Dark pattern (Urgency): Select country\nIndia\nUSA\n\n\u26a1 HURRY!",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Dark pattern (Urgency): Select country\nIndia\nUSA\n\n\u26a1 HURRY!",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.0,
+        "ethical": 0.05
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "dark_pattern_6",
+      "issue_category": "dark_pattern",
+      "issue_description": "Dark pattern (Urgency): \ud83d\udd25 Limited time deal \u2014 Act now before it's gone!",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Dark pattern (Urgency): \ud83d\udd25 Limited time deal \u2014 Act now before it's gone!",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.0,
+        "ethical": 0.05
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "dark_pattern_7",
+      "issue_category": "dark_pattern",
+      "issue_description": "Dark pattern (Social Proof): Other users are viewing this product right now.",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Dark pattern (Social Proof): Other users are viewing this product right now.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.0,
+        "ethical": 0.05
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "dark_pattern_8",
+      "issue_category": "dark_pattern",
+      "issue_description": "Dark pattern (Confirm-shaming): No thanks, I prefer to pay full price\n* Additional processing fee of $4.99 appli",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Dark pattern (Confirm-shaming): No thanks, I prefer to pay full price\n* Additional processing fee of $4.99 appli",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.0,
+        "ethical": 0.05
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "dark_pattern_9",
+      "issue_category": "dark_pattern",
+      "issue_description": "Dark pattern (Sneaking): Auto-renewal at $29.99/month.",
+      "original_html": "N/A",
+      "fixed_html": "Fix: Review and address this issue.",
+      "explanation": "Dark pattern (Sneaking): Auto-renewal at $29.99/month.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.0,
+        "perceptual": 0.0,
+        "ethical": 0.05
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "keyboard_10",
+      "issue_category": "keyboard",
+      "issue_description": "No skip-navigation link found. Keyboard users must tab through all navigation items to reach main content.",
+      "original_html": "<body>...",
+      "fixed_html": "<body>\n  <a href=\"#main-content\" class=\"skip-link\">Skip to main content</a>\n  ...\n  <main id=\"main-content\">",
+      "explanation": "Add a skip-navigation link so keyboard users can bypass repetitive navigation.",
+      "priority": "medium",
+      "predicted_impact": {
+        "technical": 0.03,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "keyboard_11",
+      "issue_category": "keyboard",
+      "issue_description": "Element <button> receives focus but has no visible focus indicator.",
+      "original_html": "<button><svg>...</svg></button>",
+      "fixed_html": "<button aria-label=\"Action description\"><svg>...</svg></button>",
+      "explanation": "Add aria-label so screen readers can announce the button purpose.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.03,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "keyboard_12",
+      "issue_category": "keyboard",
+      "issue_description": "Element <button> receives focus but has no visible focus indicator.",
+      "original_html": "<button><svg>...</svg></button>",
+      "fixed_html": "<button aria-label=\"Action description\"><svg>...</svg></button>",
+      "explanation": "Add aria-label so screen readers can announce the button purpose.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.03,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "keyboard_13",
+      "issue_category": "keyboard",
+      "issue_description": "Element <button> receives focus but has no visible focus indicator.",
+      "original_html": "<button><svg>...</svg></button>",
+      "fixed_html": "<button aria-label=\"Action description\"><svg>...</svg></button>",
+      "explanation": "Add aria-label so screen readers can announce the button purpose.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.03,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    },
+    {
+      "issue_id": "screen_reader_14",
+      "issue_category": "screen_reader",
+      "issue_description": "No <h1> heading found. Screen readers rely on headings to convey page structure.",
+      "original_html": null,
+      "fixed_html": "Fix: Add a single <h1> element describing the main page purpose.",
+      "explanation": "No <h1> heading found. Screen readers rely on headings to convey page structure.",
+      "priority": "high",
+      "predicted_impact": {
+        "technical": 0.04,
+        "perceptual": 0.0,
+        "ethical": 0.0
+      },
+      "trade_off_note": null
+    }
+  ]
+}

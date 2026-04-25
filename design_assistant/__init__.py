@@ -1,5 +1,5 @@
-"""Core package for the AI-Powered Design Assistant pipeline."""
+"""Core package for the Design Fairness Assistant pipeline."""
 
-from .pipeline import DesignAssistant  # re-export for convenience
+from .pipeline import DesignAssistant 
 
 __all__ = ["DesignAssistant"]

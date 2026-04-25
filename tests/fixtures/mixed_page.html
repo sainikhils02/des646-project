@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MixedShop — Online Store</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #fafafa; color: #333; }
+        header { background: #2c3e50; color: white; padding: 16px; }
+        nav a { color: #ecf0f1; margin-right: 12px; text-decoration: none; }
+        /* Focus visible only for some elements */
+        nav a:focus { outline: 2px solid gold; }
+        main { padding: 20px; max-width: 900px; margin: 0 auto; }
+        .product { border: 1px solid #ddd; padding: 16px; margin: 16px 0; border-radius: 8px; background: white; }
+        .low-contrast-note { color: #bbb; font-size: 12px; }
+        button { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:focus-visible { outline: 2px solid #2980b9; outline-offset: 2px; }
+        .timer { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <!-- Has nav landmark but no skip link -->
+    <header>
+        <h1>MixedShop</h1>
+    </header>
+
+    <nav aria-label="Main">
+        <a href="#home">Home</a>
+        <a href="#deals">Deals</a>
+        <a href="#cart">Cart</a>
+    </nav>
+
+    <main>
+        <h2>Today's Deals</h2>
+
+        <!-- Mild urgency — not extreme -->
+        <p class="timer">⏰ Sale ends in 23:59:59</p>
+
+        <div class="product">
+            <img src="laptop.jpg" alt="Silver laptop with 15-inch display">
+            <h3>ProBook Laptop</h3>
+            <p>Powerful performance for work and play. 16GB RAM, 512GB SSD.</p>
+            <p><strong>₹54,999</strong></p>
+            <button>Add to Cart</button>
+        </div>
+
+        <div class="product">
+            <!-- Image with alt text -->
+            <img src="tablet.jpg" alt="Black tablet with stylus">
+            <h3>ArtTab Pro</h3>
+            <p>Perfect for digital artists. Pressure-sensitive stylus included.</p>
+            <p><strong>₹32,999</strong></p>
+            <!-- Button with text = has accessible name -->
+            <button>Buy Now</button>
+        </div>
+
+        <h2>Newsletter</h2>
+        <!-- One input has label, one doesn't -->
+        <form>
+            <label for="nl-email">Your Email</label>
+            <input type="email" id="nl-email" placeholder="email@example.com">
+            <br><br>
+            <!-- This one has no label -->
+            <input type="text" placeholder="Your name (optional)">
+            <br><br>
+            <button type="submit">Subscribe</button>
+        </form>
+
+        <!-- Low contrast fine print -->
+        <p class="low-contrast-note">By subscribing you agree to receive promotional emails. You can unsubscribe anytime.</p>
+    </main>
+
+    <footer>
+        <p>© 2024 MixedShop. All rights reserved.</p>
+    </footer>
+</body>
+</html>
